@@ -1,4 +1,4 @@
-Title: feat: Configure S3 event notification for Bronze-to-Silver trigger
+# feat: Configure S3 event notification for Bronze-to-Silver trigger
 
 ## What do you want to build?
 

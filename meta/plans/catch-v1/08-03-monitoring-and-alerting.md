@@ -1,4 +1,4 @@
-Title: feat: Pipeline monitoring, alerting, and operational runbook
+# feat: Pipeline monitoring, alerting, and operational runbook
 
 ## What do you want to build?
 

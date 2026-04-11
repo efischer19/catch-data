@@ -1,4 +1,4 @@
-Title: feat: Rename example apps and libs to catch-specific names
+# feat: Rename example apps and libs to catch-specific names
 
 ## What do you want to build?
 
@@ -10,7 +10,7 @@ all internal import references.
 The mapping is:
 
 | Template Name | Catch Name | Purpose |
-|---|---|---|
+| --- | --- | --- |
 | `apps/example-ingestion` | `apps/catch-ingestion` | Bronze layer — MLB API ingestion |
 | `apps/example-processing` | `apps/catch-processing` | Silver layer — data cleaning/joining |
 | `apps/example-analytics` | `apps/catch-analytics` | Gold layer — UI-ready JSON generation |

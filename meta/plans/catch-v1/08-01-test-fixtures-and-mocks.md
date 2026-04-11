@@ -1,4 +1,4 @@
-Title: feat: Create MLB API test fixtures and mocking infrastructure
+# feat: Create MLB API test fixtures and mocking infrastructure
 
 ## What do you want to build?
 

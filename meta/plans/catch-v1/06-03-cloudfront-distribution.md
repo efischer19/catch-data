@@ -1,4 +1,4 @@
-Title: feat: Terraform CloudFront distribution for Gold layer public access
+# feat: Terraform CloudFront distribution for Gold layer public access
 
 ## What do you want to build?
 

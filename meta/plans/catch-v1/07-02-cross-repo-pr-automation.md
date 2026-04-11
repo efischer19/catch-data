@@ -1,4 +1,4 @@
-Title: feat: GitHub Action for cross-repo schema PR to catch-app
+# feat: GitHub Action for cross-repo schema PR to catch-app
 
 ## What do you want to build?
 

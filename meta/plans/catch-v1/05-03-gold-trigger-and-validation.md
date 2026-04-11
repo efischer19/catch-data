@@ -1,4 +1,4 @@
-Title: feat: Configure Silver-to-Gold trigger and Gold output validation
+# feat: Configure Silver-to-Gold trigger and Gold output validation
 
 ## What do you want to build?
 

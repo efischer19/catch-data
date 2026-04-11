@@ -1,4 +1,4 @@
-Title: feat: Define Bronze layer Pydantic models for raw MLB API responses
+# feat: Define Bronze layer Pydantic models for raw MLB API responses
 
 ## What do you want to build?
 

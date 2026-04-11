@@ -1,4 +1,4 @@
-Title: feat: Update CI/CD workflows for catch-specific apps and libs
+# feat: Update CI/CD workflows for catch-specific apps and libs
 
 ## What do you want to build?
 

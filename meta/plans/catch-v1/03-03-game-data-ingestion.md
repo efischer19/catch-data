@@ -1,4 +1,4 @@
-Title: feat: Implement boxscore and content ingestion to Bronze S3 layer
+# feat: Implement boxscore and content ingestion to Bronze S3 layer
 
 ## What do you want to build?
 

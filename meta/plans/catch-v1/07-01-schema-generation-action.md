@@ -1,4 +1,4 @@
-Title: feat: GitHub Action to auto-generate JSON Schema on merge to main
+# feat: GitHub Action to auto-generate JSON Schema on merge to main
 
 ## What do you want to build?
 

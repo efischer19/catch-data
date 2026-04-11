@@ -1,4 +1,4 @@
-Title: feat: Configure Mac Mini cron job for nightly ingestion
+# feat: Configure Mac Mini cron job for nightly ingestion
 
 ## What do you want to build?
 

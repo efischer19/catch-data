@@ -1,4 +1,4 @@
-Title: feat: Define S3 path conventions for MLB catch-data pipeline
+# feat: Define S3 path conventions for MLB catch-data pipeline
 
 ## What do you want to build?
 

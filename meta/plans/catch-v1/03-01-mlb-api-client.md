@@ -1,4 +1,4 @@
-Title: feat: Implement MLB Stats API HTTP client with ethical fetching
+# feat: Implement MLB Stats API HTTP client with ethical fetching
 
 ## What do you want to build?
 

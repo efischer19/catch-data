@@ -1,4 +1,4 @@
-Title: feat: Implement Gold layer upcoming games JSON generation
+# feat: Implement Gold layer upcoming games JSON generation
 
 ## What do you want to build?
 

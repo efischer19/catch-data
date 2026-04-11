@@ -1,4 +1,4 @@
-Title: feat: End-to-end pipeline integration tests
+# feat: End-to-end pipeline integration tests
 
 ## What do you want to build?
 

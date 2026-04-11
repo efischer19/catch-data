@@ -1,4 +1,4 @@
-Title: feat: Terraform S3 bucket configuration with event notifications
+# feat: Terraform S3 bucket configuration with event notifications
 
 ## What do you want to build?
 

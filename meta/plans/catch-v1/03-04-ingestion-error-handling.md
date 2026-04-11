@@ -1,4 +1,4 @@
-Title: feat: Add comprehensive error handling and resilience to ingestion
+# feat: Add comprehensive error handling and resilience to ingestion
 
 ## What do you want to build?
 

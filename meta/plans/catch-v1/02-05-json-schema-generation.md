@@ -1,4 +1,4 @@
-Title: feat: Implement JSON Schema generation from Gold Pydantic models
+# feat: Implement JSON Schema generation from Gold Pydantic models
 
 ## What do you want to build?
 

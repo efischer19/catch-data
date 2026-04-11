@@ -1,4 +1,4 @@
-Title: feat: Implement Gold layer team schedule JSON generation
+# feat: Implement Gold layer team schedule JSON generation
 
 ## What do you want to build?
 

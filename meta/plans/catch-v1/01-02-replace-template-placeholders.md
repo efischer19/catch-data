@@ -1,4 +1,4 @@
-Title: feat: Replace template placeholders with catch-data project values
+# feat: Replace template placeholders with catch-data project values
 
 ## What do you want to build?
 

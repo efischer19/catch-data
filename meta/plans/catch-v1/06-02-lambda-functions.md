@@ -1,4 +1,4 @@
-Title: feat: Terraform Lambda functions for Silver and Gold processing
+# feat: Terraform Lambda functions for Silver and Gold processing
 
 ## What do you want to build?
 

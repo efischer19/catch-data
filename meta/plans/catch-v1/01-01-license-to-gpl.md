@@ -1,4 +1,4 @@
-Title: feat: Change license from MIT to GPL-3.0
+# feat: Change license from MIT to GPL-3.0
 
 ## What do you want to build?
 

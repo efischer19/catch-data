@@ -1,4 +1,4 @@
-Title: feat: Implement Silver layer Lambda to clean and join game data
+# feat: Implement Silver layer Lambda to clean and join game data
 
 ## What do you want to build?
 

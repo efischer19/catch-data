@@ -1,4 +1,4 @@
-Title: feat: Define Gold layer Pydantic models for UI-ready JSON views
+# feat: Define Gold layer Pydantic models for UI-ready JSON views
 
 ## What do you want to build?
 

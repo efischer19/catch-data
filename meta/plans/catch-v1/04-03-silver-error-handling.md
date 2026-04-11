@@ -1,4 +1,4 @@
-Title: feat: Add Silver layer error handling and data quality checks
+# feat: Add Silver layer error handling and data quality checks
 
 ## What do you want to build?
 

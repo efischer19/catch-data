@@ -1,4 +1,4 @@
-Title: feat: Define Silver layer Pydantic models for cleaned game data
+# feat: Define Silver layer Pydantic models for cleaned game data
 
 ## What do you want to build?
 
