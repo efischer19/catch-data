@@ -1,0 +1,46 @@
+name: Publish to PyPI
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish to PyPI
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/example-app
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Python and Poetry
+        uses: ./.github/actions/setup-python-poetry
+        with:
+          working-directory: apps/example-app
+
+      - name: Build package
+        run: poetry build
+
+      - name: Verify build artifacts
+        run: ls -lh dist/
+
+      # Uncomment the following to enable PyPI publishing:
+      # - name: Publish to PyPI
+      #   run: poetry publish --build
+      #   env:
+      #     POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
+      #
+      # Prerequisites for publishing:
+      #   1. Add PYPI_TOKEN to your repository secrets
+      #      (Settings → Secrets and variables → Actions → New repository secret)
+      #   2. Create an account on https://pypi.org and generate an API token
+      #   3. Uncomment the "Publish to PyPI" step above
+      #   4. Remove the "Verify build artifacts" step if desired

@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "example-data"
+version = "0.1.0"
+description = "Shared data models and S3 path conventions for the medallion architecture"
+authors = ["{{GITHUB_OWNER}}"]
+readme = "README.md"
+packages = [{include = "example_data"}]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+pydantic = "^2.11"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^9.0"
+ruff = "^0.15"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

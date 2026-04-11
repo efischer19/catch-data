@@ -1,0 +1,67 @@
+# Pipeline: Silver — Processing
+#
+# Scheduled workflow stub for the processing (Silver) stage of the
+# medallion architecture. See ADR-018 for pattern context.
+#
+# To enable scheduled runs, uncomment the cron expression below.
+# Schedule this after the ingestion pipeline completes.
+
+name: "Pipeline: Processing (Silver)"
+
+on:
+  # schedule:
+  #   # Run daily at 3:00 AM UTC — after ingestion completes
+  #   - cron: "0 3 * * *"
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "Processing date (YYYY-MM-DD). Defaults to today."
+        required: false
+        type: string
+      source:
+        description: "Bronze source to process"
+        required: false
+        default: "api-source"
+        type: string
+      entity:
+        description: "Silver entity type name"
+        required: false
+        default: "entities"
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  process:
+    name: Process Data (Silver)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      # TODO: Uncomment and configure AWS credentials for S3 access
+      # - name: Configure AWS credentials
+      #   uses: aws-actions/configure-aws-credentials@v4
+      #   with:
+      #     role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+      #     aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Set up Python and Poetry
+        uses: ./.github/actions/setup-python-poetry
+        with:
+          working-directory: apps/example-processing
+
+      - name: Run processing
+        working-directory: apps/example-processing
+        run: |
+          DATE_ARG="${{ github.event.inputs.date }}"
+          SOURCE="${{ github.event.inputs.source || 'api-source' }}"
+          ENTITY="${{ github.event.inputs.entity || 'entities' }}"
+
+          if [ -n "$DATE_ARG" ]; then
+            poetry run example-processing process --source "$SOURCE" --entity "$ENTITY" --date "$DATE_ARG"
+          else
+            poetry run example-processing process --source "$SOURCE" --entity "$ENTITY"
+          fi

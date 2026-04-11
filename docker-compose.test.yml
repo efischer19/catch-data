@@ -1,0 +1,31 @@
+# docker-compose.test.yml
+#
+# Stub configuration for running tests in containers.
+# Extend this file to add services your tests depend on (databases,
+# message brokers, etc.) and to run the test suite inside Docker.
+#
+# Usage:
+#   docker compose -f docker-compose.test.yml run --rm example-app-tests
+#
+# Prerequisites:
+#   Docker and Docker Compose installed (see ADR-006).
+
+services:
+  example-app-tests:
+    build:
+      context: .
+      dockerfile: apps/example-app/Dockerfile
+    command: ["poetry", "run", "pytest"]
+    working_dir: /app
+    volumes:
+      - ./apps/example-app:/app
+      - ./libs/example-lib:/libs/example-lib
+
+  example-lib-tests:
+    build:
+      context: .
+      dockerfile: libs/example-lib/Dockerfile
+    command: ["poetry", "run", "pytest"]
+    working_dir: /app
+    volumes:
+      - ./libs/example-lib:/app

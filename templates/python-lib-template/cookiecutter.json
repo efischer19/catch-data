@@ -1,0 +1,6 @@
+{
+    "lib_name": "my-lib",
+    "package_name": "my_lib",
+    "description": "A new shared Python library",
+    "author": "Your Name"
+}

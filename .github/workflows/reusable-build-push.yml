@@ -1,0 +1,120 @@
+name: Build and Push App Image
+
+on:
+  workflow_call:
+    inputs:
+      app_name:
+        required: true
+        type: string
+      push:
+        required: false
+        type: boolean
+        default: false
+      tags:
+        required: false
+        type: string
+        default: 'latest'
+    secrets:
+      AWS_ACCOUNT_ID:
+        required: true
+
+  workflow_dispatch:
+    inputs:
+      app_name:
+        description: 'Application to build'
+        required: true
+        type: choice
+        options:
+          - example-app
+      push:
+        description: 'Push to ECR?'
+        required: true
+        type: boolean
+        default: true
+      tags:
+        description: 'Comma-separated tags (e.g. latest,v1.0)'
+        required: false
+        default: 'latest'
+
+# See ADR-017 for OIDC authentication details.
+permissions:
+  id-token: write
+  contents: read
+  actions: read
+
+jobs:
+  build-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Check if app has a Dockerfile
+        id: check
+        working-directory: apps/${{ inputs.app_name }}
+        run: |
+          if [ -f "Dockerfile" ]; then
+            echo "deployable=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::error::No Dockerfile found for ${{ inputs.app_name }}"
+            exit 1
+          fi
+
+      - name: Configure AWS credentials
+        if: inputs.push == true
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ vars.PROJECT_NAME }}-github-actions
+          role-session-name: GitHubActions-BuildPush-${{ github.run_id }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        if: inputs.push == true
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build Docker image
+        working-directory: apps/${{ inputs.app_name }}
+        run: |
+          # Determine build context based on shared library usage
+          if grep -q "path.*\\.\\./\\.\\./libs" pyproject.toml 2>/dev/null; then
+            echo "📦 Application uses shared libraries, building from repository root"
+            CONTEXT_DIR="../../"
+            DOCKERFILE="apps/${{ inputs.app_name }}/Dockerfile"
+          else
+            echo "📦 Building standalone application"
+            CONTEXT_DIR="."
+            DOCKERFILE="Dockerfile"
+          fi
+
+          TAG_ARGS=""
+          if [ "${{ inputs.push }}" = "true" ]; then
+            REGISTRY="${{ steps.login-ecr.outputs.registry }}"
+            REPO="${{ vars.PROJECT_NAME }}-prod"
+            IFS=',' read -ra TAG_LIST <<< "${{ inputs.tags }}"
+            for tag in "${TAG_LIST[@]}"; do
+              TAG_ARGS="$TAG_ARGS -t $REGISTRY/$REPO:${{ inputs.app_name }}-$tag"
+            done
+            OUTPUT_ARG="--push"
+          else
+            TAG_ARGS="-t ${{ inputs.app_name }}:ci"
+            OUTPUT_ARG="--load"
+          fi
+
+          echo "Building with context: $CONTEXT_DIR"
+          echo "Dockerfile: $DOCKERFILE"
+
+          cd "$CONTEXT_DIR"
+          docker buildx build \
+            -f "$DOCKERFILE" \
+            $TAG_ARGS \
+            $OUTPUT_ARG \
+            --provenance=false \
+            --cache-from type=gha \
+            --cache-to type=gha,mode=max \
+            .
+
+          echo "✅ Build complete"

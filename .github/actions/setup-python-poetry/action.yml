@@ -1,0 +1,46 @@
+name: Setup Python and Poetry
+description: >
+  Reusable composite action to set up Python, install Poetry, and restore
+  the project virtual environment from cache (keyed on poetry.lock hash).
+
+inputs:
+  python-version:
+    description: Python version to install
+    required: false
+    default: "3.12"
+  working-directory:
+    description: Directory containing pyproject.toml and poetry.lock
+    required: false
+    default: "."
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Python ${{ inputs.python-version }}
+      uses: actions/setup-python@v6
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Install Poetry
+      shell: bash
+      run: pip install --quiet poetry
+
+    - name: Configure Poetry to create in-project virtual environments
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: poetry config virtualenvs.in-project true
+
+    - name: Cache virtual environment
+      id: cache-venv
+      uses: actions/cache@v4
+      with:
+        path: ${{ inputs.working-directory }}/.venv
+        key: venv-${{ runner.os }}-${{ inputs.python-version }}-${{ hashFiles(format('{0}/poetry.lock', inputs.working-directory)) }}
+        restore-keys: |
+          venv-${{ runner.os }}-${{ inputs.python-version }}-
+
+    - name: Install dependencies
+      if: steps.cache-venv.outputs.cache-hit != 'true'
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: poetry install --no-interaction

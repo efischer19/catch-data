@@ -1,0 +1,35 @@
+[tool.poetry]
+name = "{{ cookiecutter.app_name }}"
+version = "0.1.0"
+description = "{{ cookiecutter.description }}"
+authors = ["{{ cookiecutter.author }}"]
+readme = "README.md"
+packages = [{include = "{{ cookiecutter.package_name }}"}]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+click = "^8.1"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0"
+ruff = "^0.11"
+
+[tool.poetry.scripts]
+{{ cookiecutter.app_name }} = "{{ cookiecutter.package_name }}.main:cli"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

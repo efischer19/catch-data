@@ -1,0 +1,65 @@
+name: Build Docker Images
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build Docker Image (${{ matrix.app }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - app: example-app
+            dockerfile: apps/example-app/Dockerfile
+            image-name: example-app
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -f ${{ matrix.dockerfile }} \
+            -t ${{ matrix.image-name }}:${{ github.sha }} \
+            -t ${{ matrix.image-name }}:latest \
+            .
+
+      - name: Save Docker image as artifact
+        run: |
+          docker save ${{ matrix.image-name }}:latest \
+            | gzip > /tmp/${{ matrix.image-name }}.tar.gz
+
+      - name: Upload Docker image artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: docker-image-${{ matrix.image-name }}
+          path: /tmp/${{ matrix.image-name }}.tar.gz
+          retention-days: 7
+
+      # To push the image to a registry, add steps like the following:
+      #
+      # - name: Push to Amazon ECR
+      #   run: |
+      #     aws ecr get-login-password --region ${{ vars.AWS_REGION }} \
+      #       | docker login --username AWS --password-stdin \
+      #         ${{ vars.ECR_REGISTRY }}
+      #     docker tag ${{ matrix.image-name }}:latest \
+      #       ${{ vars.ECR_REGISTRY }}/${{ matrix.image-name }}:${{ github.sha }}
+      #     docker push ${{ vars.ECR_REGISTRY }}/${{ matrix.image-name }}:${{ github.sha }}
+      #
+      # - name: Push to Docker Hub
+      #   uses: docker/login-action@v3
+      #   with:
+      #     username: ${{ secrets.DOCKERHUB_USERNAME }}
+      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
+      # - run: docker push ${{ matrix.image-name }}:latest

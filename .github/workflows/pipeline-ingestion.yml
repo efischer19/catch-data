@@ -1,0 +1,61 @@
+# Pipeline: Bronze — Ingestion
+#
+# Scheduled workflow stub for the ingestion (Bronze) stage of the
+# medallion architecture. See ADR-018 for pattern context.
+#
+# To enable scheduled runs, uncomment the cron expression below and
+# adjust the timing to match your data source update frequency.
+
+name: "Pipeline: Ingestion (Bronze)"
+
+on:
+  # schedule:
+  #   # Run daily at 2:00 AM UTC — adjust to your data source cadence
+  #   - cron: "0 2 * * *"
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "Processing date (YYYY-MM-DD). Defaults to today."
+        required: false
+        type: string
+      source:
+        description: "Data source name"
+        required: false
+        default: "api-source"
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  ingest:
+    name: Ingest Raw Data (Bronze)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      # TODO: Uncomment and configure AWS credentials for S3 access
+      # - name: Configure AWS credentials
+      #   uses: aws-actions/configure-aws-credentials@v4
+      #   with:
+      #     role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+      #     aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Set up Python and Poetry
+        uses: ./.github/actions/setup-python-poetry
+        with:
+          working-directory: apps/example-ingestion
+
+      - name: Run ingestion
+        working-directory: apps/example-ingestion
+        run: |
+          DATE_ARG="${{ github.event.inputs.date }}"
+          SOURCE="${{ github.event.inputs.source || 'api-source' }}"
+
+          if [ -n "$DATE_ARG" ]; then
+            poetry run example-ingestion ingest --source "$SOURCE" --date "$DATE_ARG"
+          else
+            poetry run example-ingestion ingest --source "$SOURCE"
+          fi

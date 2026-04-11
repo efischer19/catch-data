@@ -1,0 +1,26 @@
+version: 2
+updates:
+  # Monitor GitHub Actions for version updates
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+  # Monitor pip dependencies for example-app
+  - package-ecosystem: "pip"
+    directory: "/apps/example-app"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+
+  # Monitor pip dependencies for example-lib
+  - package-ecosystem: "pip"
+    directory: "/libs/example-lib"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5

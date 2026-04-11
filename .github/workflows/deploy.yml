@@ -1,0 +1,123 @@
+name: Deploy Application
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/**'
+      - 'libs/**'
+  workflow_dispatch:
+    inputs:
+      application:
+        description: 'Application to deploy'
+        required: true
+        type: choice
+        options:
+          - example-app
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'prod'
+        type: choice
+        options:
+          - prod
+      image_tag:
+        description: 'Image tag to deploy (defaults to commit SHA)'
+        required: false
+        default: ''
+        type: string
+
+# See ADR-017 for OIDC authentication details.
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  ECR_REPOSITORY: ${{ vars.PROJECT_NAME }}-prod
+
+jobs:
+  # ── Build and push the container image to ECR ─────────────────────────────
+  build-push:
+    name: Build & Push
+    uses: ./.github/workflows/reusable-build-push.yml
+    with:
+      app_name: ${{ inputs.application || 'example-app' }}
+      push: true
+      tags: "${{ github.sha }},latest"
+    secrets:
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+
+  # ── Update the Lambda function to use the new image ───────────────────────
+  deploy:
+    name: Deploy ${{ inputs.application || 'example-app' }}
+    runs-on: ubuntu-latest
+    needs: build-push
+
+    steps:
+      - name: Set deployment variables
+        id: vars
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            APP="${{ inputs.application }}"
+            ENV="${{ inputs.environment }}"
+            TAG="${{ inputs.image_tag || github.sha }}"
+          else
+            APP="example-app"
+            ENV="prod"
+            TAG="${{ github.sha }}"
+          fi
+          echo "app=$APP" >> "$GITHUB_OUTPUT"
+          echo "environment=$ENV" >> "$GITHUB_OUTPUT"
+          echo "image_tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/${{ vars.PROJECT_NAME }}-github-actions
+          role-session-name: GitHubActions-Deploy-${{ github.run_id }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Update Lambda function
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          APP_NAME: ${{ steps.vars.outputs.app }}
+          ENVIRONMENT: ${{ steps.vars.outputs.environment }}
+          IMAGE_TAG: ${{ steps.vars.outputs.image_tag }}
+        run: |
+          FUNCTION_NAME="${{ vars.PROJECT_NAME }}-$ENVIRONMENT"
+          IMAGE_URI="$ECR_REGISTRY/$ECR_REPOSITORY:$APP_NAME-$IMAGE_TAG"
+
+          echo "🚀 Deploying $APP_NAME to Lambda function $FUNCTION_NAME"
+          echo "📦 Image: $IMAGE_URI"
+
+          aws lambda update-function-code \
+            --function-name "$FUNCTION_NAME" \
+            --image-uri "$IMAGE_URI" \
+            --region "$AWS_REGION"
+
+          echo "⏳ Waiting for function to become active..."
+          aws lambda wait function-updated \
+            --function-name "$FUNCTION_NAME" \
+            --region "$AWS_REGION"
+
+          echo "✅ Deployment complete"
+
+      - name: Deployment summary
+        env:
+          APP_NAME: ${{ steps.vars.outputs.app }}
+          ENVIRONMENT: ${{ steps.vars.outputs.environment }}
+          IMAGE_TAG: ${{ steps.vars.outputs.image_tag }}
+        run: |
+          echo "📋 Deployment Summary"
+          echo "===================="
+          echo "Application: $APP_NAME"
+          echo "Environment: $ENVIRONMENT"
+          echo "Image Tag:   $IMAGE_TAG"
+          echo "Triggered by: ${{ github.event_name }}"
+          echo "Status: ✅ Success"

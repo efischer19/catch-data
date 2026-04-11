@@ -1,0 +1,67 @@
+# Pipeline: Gold — Analytics
+#
+# Scheduled workflow stub for the analytics (Gold) stage of the
+# medallion architecture. See ADR-018 for pattern context.
+#
+# To enable scheduled runs, uncomment the cron expression below.
+# Schedule this after the processing pipeline completes.
+
+name: "Pipeline: Analytics (Gold)"
+
+on:
+  # schedule:
+  #   # Run daily at 4:00 AM UTC — after processing completes
+  #   - cron: "0 4 * * *"
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "Processing date (YYYY-MM-DD). Defaults to today."
+        required: false
+        type: string
+      entity:
+        description: "Silver entity type to aggregate"
+        required: false
+        default: "entities"
+        type: string
+      metric_name:
+        description: "Output metric name"
+        required: false
+        default: "summary-metrics"
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  aggregate:
+    name: Aggregate Metrics (Gold)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      # TODO: Uncomment and configure AWS credentials for S3 access
+      # - name: Configure AWS credentials
+      #   uses: aws-actions/configure-aws-credentials@v4
+      #   with:
+      #     role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+      #     aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Set up Python and Poetry
+        uses: ./.github/actions/setup-python-poetry
+        with:
+          working-directory: apps/example-analytics
+
+      - name: Run analytics
+        working-directory: apps/example-analytics
+        run: |
+          DATE_ARG="${{ github.event.inputs.date }}"
+          ENTITY="${{ github.event.inputs.entity || 'entities' }}"
+          METRIC="${{ github.event.inputs.metric_name || 'summary-metrics' }}"
+
+          if [ -n "$DATE_ARG" ]; then
+            poetry run example-analytics aggregate --entity "$ENTITY" --metric-name "$METRIC" --date "$DATE_ARG"
+          else
+            poetry run example-analytics aggregate --entity "$ENTITY" --metric-name "$METRIC"
+          fi
