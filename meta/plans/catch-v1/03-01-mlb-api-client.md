@@ -32,6 +32,11 @@ User-Agent is blocked by the MLB CDN, investigate alternatives (e.g., adding a
 standard `Accept` header, using a different API endpoint) before resorting to
 spoofing. Document the decision in an ADR.
 
+<editorial postscript: the PRD should not have had that language included, the
+API Ethicist is absolutely correct here. The system can do bronze ingestion
+via lambda if that's supported, but our next step if not is to run the daily
+ingest via a cronjob on a local machine. We do not condone unethical API usage.>
+
 **📝 ADR Consideration:**
 
 - Propose an ADR documenting the User-Agent policy decision for MLB Stats API
