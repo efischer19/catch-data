@@ -952,19 +952,19 @@ layers of data quality:</p>
 <tbody>
 <tr>
 <td style="text-align: left;"><strong>Bronze</strong></td>
-<td style="text-align: left;"><code>apps/example-ingestion/</code></td>
+<td style="text-align: left;"><code>apps/catch-ingestion/</code></td>
 <td style="text-align: left;"><code>bronze/{source}/{date}/</code></td>
 <td style="text-align: left;">Raw data with minimal validation</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>Silver</strong></td>
-<td style="text-align: left;"><code>apps/example-processing/</code></td>
+<td style="text-align: left;"><code>apps/catch-processing/</code></td>
 <td style="text-align: left;"><code>silver/{entity}/{date}/</code></td>
 <td style="text-align: left;">Cleaned and validated entities</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>Gold</strong></td>
-<td style="text-align: left;"><code>apps/example-analytics/</code></td>
+<td style="text-align: left;"><code>apps/catch-analytics/</code></td>
 <td style="text-align: left;"><code>gold/served/{metric_name}/</code></td>
 <td style="text-align: left;">Business-ready aggregations</td>
 </tr>
@@ -978,10 +978,10 @@ the layers:</p>
 <a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>├── silver/{entity}/{YYYY-MM-DD}/       # Cleaned &amp; validated data
 <a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>└── gold/served/{metric_name}/          # Business-ready aggregations
 </code></pre></div>
-<p>The <code>MedallionPaths</code> utility in <code>libs/example-data/</code> generates these
+<p>The <code>MedallionPaths</code> utility in <code>libs/catch-models/</code> generates these
 prefixes consistently:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">date</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">example_data</span><span class="w"> </span><span class="kn">import</span> <span class="n">MedallionPaths</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">catch_models</span><span class="w"> </span><span class="kn">import</span> <span class="n">MedallionPaths</span>
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
 <a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">paths</span> <span class="o">=</span> <span class="n">MedallionPaths</span><span class="p">(</span><span class="s2">&quot;my-project-data-dev&quot;</span><span class="p">)</span>
 <a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
@@ -995,7 +995,7 @@ prefixes consistently:</p>
 <a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="c1"># =&gt; &quot;gold/served/daily-active-users/&quot;</span>
 </code></pre></div>
 <h2 id="shared-data-models">Shared Data Models<a class="headerlink" href="#shared-data-models" title="Permanent link">&para;</a></h2>
-<p>The <code>libs/example-data/</code> library provides Pydantic model skeletons for
+<p>The <code>libs/catch-models/</code> library provides Pydantic model skeletons for
 each layer:</p>
 <ul>
 <li><strong><code>BronzeRecord</code></strong> — Raw ingested record with source metadata</li>
@@ -1006,7 +1006,7 @@ each layer:</p>
 them with your domain-specific fields.</p>
 <h2 id="how-to-customize">How to Customize<a class="headerlink" href="#how-to-customize" title="Permanent link">&para;</a></h2>
 <h3 id="1-define-your-data-models">1. Define Your Data Models<a class="headerlink" href="#1-define-your-data-models" title="Permanent link">&para;</a></h3>
-<p>Edit the models in <code>libs/example-data/example_data/models.py</code> to match
+<p>Edit the models in <code>libs/catch-models/catch_models/models.py</code> to match
 your domain:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">SilverEntity</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>    <span class="n">entity_id</span><span class="p">:</span> <span class="nb">str</span>
@@ -1015,7 +1015,7 @@ your domain:</p>
 <a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    <span class="n">score</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">ge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">le</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 </code></pre></div>
 <h3 id="2-implement-data-source-logic">2. Implement Data Source Logic<a class="headerlink" href="#2-implement-data-source-logic" title="Permanent link">&para;</a></h3>
-<p>In <code>apps/example-ingestion/app/main.py</code>, replace <code>fetch_from_source()</code>
+<p>In <code>apps/catch-ingestion/app/main.py</code>, replace <code>fetch_from_source()</code>
 with your real data source:</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">fetch_from_source</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
 <a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;https://api.example.com/data&quot;</span><span class="p">)</span>
