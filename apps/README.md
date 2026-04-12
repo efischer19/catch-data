@@ -9,13 +9,13 @@ Poetry-managed dependencies:
 
 ```text
 apps/
-├── example-app/
+├── catch-ingestion/
 │   ├── README.md          # Application-specific documentation
 │   ├── pyproject.toml     # Poetry project configuration
-│   ├── src/
-│   │   └── example-app/ # Application source code
+│   ├── app/
+│   │   └── ...           # Application source code
 │   ├── tests/             # Application tests
-│   └── Dockerfile         # Container definition (if applicable)
+│   └── Dockerfile         # Container definition
 └── ...
 ```
 

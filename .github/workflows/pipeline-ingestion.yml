@@ -46,16 +46,16 @@ jobs:
       - name: Set up Python and Poetry
         uses: ./.github/actions/setup-python-poetry
         with:
-          working-directory: apps/example-ingestion
+          working-directory: apps/catch-ingestion
 
       - name: Run ingestion
-        working-directory: apps/example-ingestion
+        working-directory: apps/catch-ingestion
         run: |
           DATE_ARG="${{ github.event.inputs.date }}"
           SOURCE="${{ github.event.inputs.source || 'api-source' }}"
 
           if [ -n "$DATE_ARG" ]; then
-            poetry run example-ingestion ingest --source "$SOURCE" --date "$DATE_ARG"
+            poetry run catch-ingestion ingest --source "$SOURCE" --date "$DATE_ARG"
           else
-            poetry run example-ingestion ingest --source "$SOURCE"
+            poetry run catch-ingestion ingest --source "$SOURCE"
           fi

@@ -51,17 +51,17 @@ jobs:
       - name: Set up Python and Poetry
         uses: ./.github/actions/setup-python-poetry
         with:
-          working-directory: apps/example-processing
+          working-directory: apps/catch-processing
 
       - name: Run processing
-        working-directory: apps/example-processing
+        working-directory: apps/catch-processing
         run: |
           DATE_ARG="${{ github.event.inputs.date }}"
           SOURCE="${{ github.event.inputs.source || 'api-source' }}"
           ENTITY="${{ github.event.inputs.entity || 'entities' }}"
 
           if [ -n "$DATE_ARG" ]; then
-            poetry run example-processing process --source "$SOURCE" --entity "$ENTITY" --date "$DATE_ARG"
+            poetry run catch-processing process --source "$SOURCE" --entity "$ENTITY" --date "$DATE_ARG"
           else
-            poetry run example-processing process --source "$SOURCE" --entity "$ENTITY"
+            poetry run catch-processing process --source "$SOURCE" --entity "$ENTITY"
           fi

@@ -31,13 +31,13 @@ stage and a shared library for data models and path conventions.
 
 | Layer | Stage | Application | S3 Key Prefix | Purpose |
 | :--- | :--- | :--- | :--- | :--- |
-| Bronze | Ingestion | `apps/example-ingestion/` | `bronze/{source}/{date}/` | Ingest raw data from external sources with minimal transformation |
-| Silver | Processing | `apps/example-processing/` | `silver/{entity}/{date}/` | Validate, clean, and transform data using Pydantic models |
-| Gold | Analytics | `apps/example-analytics/` | `gold/served/{metric_name}/` | Aggregate data into business-ready metrics and KPIs |
+| Bronze | Ingestion | `apps/catch-ingestion/` | `bronze/{source}/{date}/` | Ingest raw data from external sources with minimal transformation |
+| Silver | Processing | `apps/catch-processing/` | `silver/{entity}/{date}/` | Validate, clean, and transform data using Pydantic models |
+| Gold | Analytics | `apps/catch-analytics/` | `gold/served/{metric_name}/` | Aggregate data into business-ready metrics and KPIs |
 
 ### Shared Data Library
 
-The `libs/example-data/` library provides:
+The `libs/catch-models/` library provides:
 
 * **Pydantic models** (`BronzeRecord`, `SilverEntity`, `GoldMetric`)
   that define the data contract for each layer.
@@ -59,7 +59,7 @@ s3://catch-data-data-dev/
 
 * Each pipeline stage is a separate application in `apps/` with its
   own `pyproject.toml`, `Dockerfile`, and test suite.
-* All stages share data models via `libs/example-data/` (path dependency).
+* All stages share data models via `libs/catch-models/` (path dependency).
 * Data flows forward through the layers: Bronze → Silver → Gold.
 * Each layer reads from the previous layer's S3 prefix and writes to
   its own prefix — no stage modifies upstream data.
