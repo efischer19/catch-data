@@ -2,7 +2,7 @@
 name = "example-app"
 version = "0.1.0"
 description = "Example application demonstrating the monorepo app pattern"
-authors = ["{{GITHUB_OWNER}}"]
+authors = ["efischer19"]
 readme = "README.md"
 packages = [{include = "app"}]
 

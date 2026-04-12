@@ -56,7 +56,7 @@ for long-lived AWS credentials.
         "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
       },
       "StringLike": {
-        "token.actions.githubusercontent.com:sub": "repo:{{GITHUB_OWNER}}/{{PROJECT_NAME}}:*"
+        "token.actions.githubusercontent.com:sub": "repo:efischer19/catch-data:*"
       }
     }
   }
@@ -64,8 +64,9 @@ for long-lived AWS credentials.
 
 * Use `id-token: write` permission in workflow jobs that need AWS
   credentials.
-* Use placeholder values (`{{AWS_ROLE_ARN}}`, `{{AWS_REGION}}`) in
-  workflow files — never commit real ARNs.
+* Never commit real AWS ARNs or account-specific values. Use GitHub
+  Actions secrets (e.g., `AWS_ROLE_ARN`) and variables (e.g., `AWS_REGION`)
+  for account-specific configuration.
 
 ### Workflow Usage Pattern
 

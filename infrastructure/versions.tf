@@ -1,4 +1,4 @@
-# Version constraints for {{PROJECT_NAME}} infrastructure
+# Version constraints for catch-data infrastructure
 # See ADR-016 (Terraform for IaC)
 #
 # Pin Terraform and provider versions for reproducible builds.

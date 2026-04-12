@@ -1,6 +1,6 @@
-# Contributing to {{PROJECT_NAME}}
+# Contributing to catch-data
 
-First off, thank you for your interest in {{PROJECT_NAME}}! We're excited
+First off, thank you for your interest in catch-data! We're excited
 you're here.
 
 This project is currently in a very early and experimental stage. The primary
@@ -12,7 +12,7 @@ different for now.
 
 ## Our Current Development Workflow
 
-{{PROJECT_NAME}} follows a specific, AI-assisted workflow:
+catch-data follows a specific, AI-assisted workflow:
 
 1. An **Issue** is created that clearly defines a bug or a feature.
 2. An **AI assistant** (like GitHub Copilot) is used to generate the code to
@@ -30,7 +30,7 @@ are several incredibly valuable ways you can contribute:
 
 This is the most helpful way to contribute. If you find a bug, have an idea for
 a feature, or think something could be improved, please
-**[open an issue](https://github.com/{{GITHUB_OWNER}}/{{PROJECT_NAME}}/issues)**!
+**[open an issue](https://github.com/efischer19/catch-data/issues)**!
 Clear issues are the starting point for the entire AI workflow.
 
 ### 💬 Provide Feedback
@@ -78,5 +78,5 @@ Before committing any code:
 ## Code of Conduct
 
 All participants are expected to follow our
-[Code of Conduct](https://github.com/{{GITHUB_OWNER}}/{{PROJECT_NAME}}/blob/main/CODE_OF_CONDUCT.md).
+[Code of Conduct](https://github.com/efischer19/catch-data/blob/main/CODE_OF_CONDUCT.md).
 Please be respectful and considerate in all your interactions.

@@ -10,7 +10,7 @@ This project uses **[MkDocs](https://www.mkdocs.org/)** with the
 theme to generate a static documentation site from Markdown source files in
 the `docs-src/` directory.
 
-See [ADR-012](https://github.com/{{GITHUB_OWNER}}/{{PROJECT_NAME}}/blob/main/meta/adr/ADR-012-use_mkdocs.md) for the decision record on
+See [ADR-012](https://github.com/efischer19/catch-data/blob/main/meta/adr/ADR-012-use_mkdocs.md) for the decision record on
 using MkDocs.
 
 ## Prerequisites
@@ -62,7 +62,7 @@ docs-src/
 * Place new files in `docs-src/` and add them to the `nav` section of
   `mkdocs.yml`.
 * Follow the project's
-  [markdownlint configuration](https://github.com/{{GITHUB_OWNER}}/{{PROJECT_NAME}}/blob/main/.markdownlint-cli2.yaml) for style
+  [markdownlint configuration](https://github.com/efischer19/catch-data/blob/main/.markdownlint-cli2.yaml) for style
   consistency.
 * Use admonitions (`!!! note`, `!!! warning`) for callouts.
 * Use fenced code blocks with language identifiers for syntax highlighting.

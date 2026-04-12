@@ -6,7 +6,7 @@
 ## Overview
 
 Shared libraries follow **Semantic Versioning (SemVer)** as documented in
-[ADR-009](https://github.com/{{GITHUB_OWNER}}/{{PROJECT_NAME}}/blob/main/meta/adr/ADR-009-shared_library_versioning.md). This page
+[ADR-009](https://github.com/efischer19/catch-data/blob/main/meta/adr/ADR-009-shared_library_versioning.md). This page
 provides practical guidance for contributors working with shared libraries.
 
 ## Version Format

@@ -1,8 +1,5 @@
-# Terraform configuration for {{PROJECT_NAME}}
+# Terraform configuration for catch-data
 # See ADR-015 (AWS as Cloud Provider) and ADR-016 (Terraform for IaC)
-#
-# Replace all {{...}} placeholders with your project-specific values
-# before running `terraform init` and `terraform plan`.
 
 # -----------------------------------------------------------------------------
 # S3 Bucket — Data storage (Medallion Architecture)
@@ -10,7 +7,7 @@
 # This bucket stores all pipeline data using key prefixes to separate the
 # medallion layers (see ADR-018). The recommended key layout is:
 #
-#   s3://{{PROJECT_NAME}}-data-{env}/
+#   s3://catch-data-data-{env}/
 #   ├── bronze/{source}/{YYYY-MM-DD}/       # Raw ingested data
 #   ├── silver/{entity}/{YYYY-MM-DD}/       # Cleaned & validated data
 #   └── gold/served/{metric_name}/          # Business-ready aggregations
@@ -19,7 +16,7 @@
 # simplicity. IAM policies can restrict access per prefix if needed.
 # -----------------------------------------------------------------------------
 resource "aws_s3_bucket" "data" {
-  bucket = "{{PROJECT_NAME}}-data-${var.environment}"
+  bucket = "catch-data-data-${var.environment}"
 
   tags = {
     Project     = var.project_name

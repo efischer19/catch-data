@@ -37,9 +37,9 @@ all infrastructure and deployment targets in this project.
   environment variables, or GitHub OIDC federation
   (see [ADR-017](ADR-017-github_oidc_aws_auth.md)).
 * Use `boto3` as the Python SDK for interacting with AWS services.
-* Use placeholder values (`{{AWS_ACCOUNT_ID}}`, `{{AWS_REGION}}`,
-  `{{S3_BUCKET_NAME}}`) throughout configuration — never commit real
-  account IDs, ARNs, or resource names.
+* Never commit real AWS account IDs, ARNs, or resource names. Use
+  environment variables or GitHub Actions secrets for account-specific
+  values.
 
 ### AWS Services in Use
 
@@ -81,6 +81,4 @@ all infrastructure and deployment targets in this project.
 * **Future Implications:** All infrastructure is defined with
   Terraform (see [ADR-016](ADR-016-terraform_iac.md)). CI/CD
   workflows authenticate to AWS via GitHub OIDC
-  (see [ADR-017](ADR-017-github_oidc_aws_auth.md)). Downstream
-  projects should replace placeholder values with real AWS resource
-  identifiers.
+  (see [ADR-017](ADR-017-github_oidc_aws_auth.md)).

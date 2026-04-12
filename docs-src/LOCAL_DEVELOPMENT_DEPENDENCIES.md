@@ -44,7 +44,7 @@ python scripts/setup-local-deps.py
 
 The minimum Python version for this project is **3.12**, as specified in
 `.python-version` and documented in
-[ADR-002](https://github.com/{{GITHUB_OWNER}}/{{PROJECT_NAME}}/blob/main/meta/adr/ADR-002-use_python312.md).
+[ADR-002](https://github.com/efischer19/catch-data/blob/main/meta/adr/ADR-002-use_python312.md).
 
 Use `pyenv` to manage Python versions:
 
@@ -58,7 +58,7 @@ python --version  # Should output Python 3.12.x
 
 Poetry manages dependencies, virtual environments, and package metadata for
 each application and library in the monorepo. See
-[ADR-003](https://github.com/{{GITHUB_OWNER}}/{{PROJECT_NAME}}/blob/main/meta/adr/ADR-003-use_poetry.md).
+[ADR-003](https://github.com/efischer19/catch-data/blob/main/meta/adr/ADR-003-use_poetry.md).
 
 ```bash
 # Install Poetry
@@ -75,7 +75,7 @@ poetry run pytest
 ## Ruff
 
 Ruff handles both linting and formatting for Python code. See
-[ADR-005](https://github.com/{{GITHUB_OWNER}}/{{PROJECT_NAME}}/blob/main/meta/adr/ADR-005-use_ruff.md).
+[ADR-005](https://github.com/efischer19/catch-data/blob/main/meta/adr/ADR-005-use_ruff.md).
 
 ```bash
 # Check formatting

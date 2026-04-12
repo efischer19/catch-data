@@ -24,10 +24,9 @@ Customize this module:
 
 import json
 import logging
+import os
 
 import click
-
-logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
@@ -176,7 +175,7 @@ def process(source: str, entity: str, processing_date: str | None):
         else date_type.today()
     )
 
-    paths = MedallionPaths("{{S3_BUCKET_NAME}}")
+    paths = MedallionPaths(os.environ.get("S3_BUCKET_NAME", "catch-data-data-dev"))
     bronze_prefix = paths.bronze(source, processing)
     silver_prefix = paths.silver(entity, processing)
 

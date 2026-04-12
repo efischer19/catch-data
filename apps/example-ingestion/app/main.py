@@ -20,6 +20,7 @@ Customize this module:
 
 import json
 import logging
+import os
 
 import click
 
@@ -133,7 +134,7 @@ def ingest(source: str, processing_date: str | None):
     ]
     click.echo(f"Validated {len(bronze_records)} bronze records")
 
-    paths = MedallionPaths("{{S3_BUCKET_NAME}}")
+    paths = MedallionPaths(os.environ.get("S3_BUCKET_NAME", "catch-data-data-dev"))
     key_prefix = paths.bronze(source, processing)
 
     serialized = [json.loads(record.model_dump_json()) for record in bronze_records]

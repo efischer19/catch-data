@@ -23,53 +23,53 @@ and locking. Create these **before** running `terraform init`:
 
 1. **S3 Bucket:**
    - Go to S3 → Create bucket
-   - Bucket name: `{{TF_STATE_BUCKET}}` (e.g., `my-project-tf-state`)
-   - Region: `{{AWS_REGION}}`
+   - Bucket name: `catch-data-tf-state` (e.g., `my-project-tf-state`)
+   - Region: `us-west-2`
    - Enable versioning
    - Enable server-side encryption (SSE-S3)
    - Block all public access
 
 2. **DynamoDB Table:**
    - Go to DynamoDB → Create table
-   - Table name: `{{TF_LOCK_TABLE}}` (e.g., `my-project-tf-lock`)
+   - Table name: `catch-data-tf-lock` (e.g., `my-project-tf-lock`)
    - Partition key: `LockID` (String)
    - Use on-demand capacity mode
 
 ### Using the AWS CLI
 
 ```bash
-# Create S3 bucket for state (replace placeholders)
+# Create S3 bucket for state.
 # Note: For us-east-1, omit --create-bucket-configuration.
 # For all other regions, include it with the correct LocationConstraint.
 aws s3api create-bucket \
-  --bucket {{TF_STATE_BUCKET}} \
-  --region {{AWS_REGION}} \
-  --create-bucket-configuration LocationConstraint={{AWS_REGION}}
+  --bucket catch-data-tf-state \
+  --region us-west-2 \
+  --create-bucket-configuration LocationConstraint=us-west-2
 
 # Enable versioning
 aws s3api put-bucket-versioning \
-  --bucket {{TF_STATE_BUCKET}} \
+  --bucket catch-data-tf-state \
   --versioning-configuration Status=Enabled
 
 # Enable encryption
 aws s3api put-bucket-encryption \
-  --bucket {{TF_STATE_BUCKET}} \
+  --bucket catch-data-tf-state \
   --server-side-encryption-configuration \
     '{"Rules":[{"ApplyServerSideEncryptionByDefault":{"SSEAlgorithm":"AES256"}}]}'
 
 # Block public access
 aws s3api put-public-access-block \
-  --bucket {{TF_STATE_BUCKET}} \
+  --bucket catch-data-tf-state \
   --public-access-block-configuration \
     BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true
 
 # Create DynamoDB table for state locking
 aws dynamodb create-table \
-  --table-name {{TF_LOCK_TABLE}} \
+  --table-name catch-data-tf-lock \
   --attribute-definitions AttributeName=LockID,AttributeType=S \
   --key-schema AttributeName=LockID,KeyType=HASH \
   --billing-mode PAY_PER_REQUEST \
-  --region {{AWS_REGION}}
+  --region us-west-2
 ```
 
 ## Step 2 — Configure GitHub Actions Authentication
@@ -77,19 +77,17 @@ aws dynamodb create-table \
 Follow the [GITHUB_ACTIONS_ROLE.md](GITHUB_ACTIONS_ROLE.md) guide to set
 up OIDC authentication between GitHub Actions and AWS.
 
-## Step 3 — Replace Placeholder Values
+## Step 3 — Configure Project Values
 
-Search for `{{...}}` placeholders across the repository and replace them
-with your real values:
+The catch-data project is already configured with the following values:
 
-| Placeholder | Description | Example |
-| :--- | :--- | :--- |
-| `{{AWS_ACCOUNT_ID}}` | Your AWS account ID | `123456789012` |
-| `{{AWS_REGION}}` | Target AWS region | `us-east-1` |
-| `{{TF_STATE_BUCKET}}` | S3 bucket for Terraform state | `my-project-tf-state` |
-| `{{TF_LOCK_TABLE}}` | DynamoDB table for state locking | `my-project-tf-lock` |
-| `{{PROJECT_NAME}}` | Your project name | `my-data-project` |
-| `{{GITHUB_OWNER}}` | GitHub org or user | `my-org` |
+| Setting | Value |
+| :--- | :--- |
+| AWS Region | `us-west-2` |
+| Terraform state bucket | `catch-data-tf-state` |
+| Terraform lock table | `catch-data-tf-lock` |
+| Project name | `catch-data` |
+| GitHub owner | `efischer19` |
 
 ## Step 4 — Set GitHub Repository Secrets and Variables
 
