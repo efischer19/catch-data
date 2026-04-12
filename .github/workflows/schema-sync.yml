@@ -125,6 +125,15 @@ jobs:
           ref: ${{ steps.context.outputs.source_sha }}
           fetch-depth: 1
 
+      - name: Validate target git refs
+        if: steps.auth.outputs.ready == 'true' && steps.target.outputs.exists == 'true'
+        env:
+          BRANCH_NAME: ${{ steps.target.outputs.branch_name }}
+          DEFAULT_BRANCH: ${{ steps.target.outputs.default_branch }}
+        run: |
+          git check-ref-format --branch "${BRANCH_NAME}"
+          git check-ref-format --branch "${DEFAULT_BRANCH}"
+
       - name: Checkout catch-app
         if: steps.auth.outputs.ready == 'true' && steps.target.outputs.exists == 'true'
         uses: actions/checkout@v6
