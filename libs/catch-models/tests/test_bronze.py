@@ -17,8 +17,8 @@ from catch_models.bronze.schedule import ScheduleResponse
 FIXTURES = Path(__file__).parent / "fixtures"
 
 
-def _read(name: str) -> bytes:
-    """Return raw bytes from a fixture file."""
+def _load_fixture(name: str) -> bytes:
+    """Return raw bytes from a frozen API response fixture file."""
     return (FIXTURES / name).read_bytes()
 
 
@@ -29,7 +29,9 @@ class TestScheduleResponse:
     """Validate ScheduleResponse against frozen fixtures."""
 
     def test_typical(self):
-        resp = ScheduleResponse.model_validate_json(_read("schedule_typical.json"))
+        resp = ScheduleResponse.model_validate_json(
+            _load_fixture("schedule_typical.json"),
+        )
         assert resp.totalGames == 2
         assert len(resp.dates) == 2
         game = resp.dates[0].games[0]
@@ -40,7 +42,7 @@ class TestScheduleResponse:
 
     def test_edge_case_doubleheader(self):
         resp = ScheduleResponse.model_validate_json(
-            _read("schedule_edge_case.json"),
+            _load_fixture("schedule_edge_case.json"),
         )
         day_games = resp.dates[0].games
         # First two games are a doubleheader
@@ -51,7 +53,7 @@ class TestScheduleResponse:
 
     def test_edge_case_postponed(self):
         resp = ScheduleResponse.model_validate_json(
-            _read("schedule_edge_case.json"),
+            _load_fixture("schedule_edge_case.json"),
         )
         postponed = resp.dates[0].games[2]
         assert postponed.status.detailedState == "Postponed"
@@ -62,7 +64,7 @@ class TestScheduleResponse:
 
     def test_edge_case_suspended(self):
         resp = ScheduleResponse.model_validate_json(
-            _read("schedule_edge_case.json"),
+            _load_fixture("schedule_edge_case.json"),
         )
         suspended = resp.dates[1].games[0]
         assert suspended.status.detailedState == "Suspended"
@@ -74,7 +76,7 @@ class TestScheduleResponse:
         """Strict validation must reject unexpected fields (API drift)."""
         with pytest.raises(ValidationError, match="newUnexpectedField"):
             ScheduleResponse.model_validate_json(
-                _read("schedule_extra_fields.json"),
+                _load_fixture("schedule_extra_fields.json"),
             )
 
 
@@ -86,7 +88,7 @@ class TestBoxscoreResponse:
 
     def test_typical(self):
         resp = BoxscoreResponse.model_validate_json(
-            _read("boxscore_typical.json"),
+            _load_fixture("boxscore_typical.json"),
         )
         assert resp.gamePk == 745678
         assert resp.gameData.status.detailedState == "Final"
@@ -102,7 +104,7 @@ class TestBoxscoreResponse:
 
     def test_edge_case_postponed(self):
         resp = BoxscoreResponse.model_validate_json(
-            _read("boxscore_edge_case.json"),
+            _load_fixture("boxscore_edge_case.json"),
         )
         assert resp.gamePk == 746200
         assert resp.gameData.status.detailedState == "Postponed"
@@ -124,7 +126,7 @@ class TestContentResponse:
 
     def test_typical(self):
         resp = ContentResponse.model_validate_json(
-            _read("content_typical.json"),
+            _load_fixture("content_typical.json"),
         )
         assert resp.link == "/api/v1/game/745678/content"
         # Editorial present
@@ -152,7 +154,7 @@ class TestContentResponse:
 
     def test_edge_case_no_highlights(self):
         resp = ContentResponse.model_validate_json(
-            _read("content_edge_case.json"),
+            _load_fixture("content_edge_case.json"),
         )
         # Editorial sections are null
         assert resp.editorial is not None

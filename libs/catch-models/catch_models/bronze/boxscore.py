@@ -121,17 +121,28 @@ class _GameData(BaseModel):
     status: _GameDataStatus
     teams: _GameDataTeams
     venue: _VenueInfo
-    players: dict[str, object] | None = None
+    players: dict[str, object] | None = None  # deeply nested per-player data
 
 
 # -- liveData nested models ------------------------------------------------
+class _InningStats(BaseModel):
+    """Per-inning run/hit/error tallies for one side (home or away)."""
+
+    model_config = _BRONZE_CONFIG
+
+    runs: int | None = None
+    hits: int | None = None
+    errors: int | None = None
+    leftOnBase: int | None = None
+
+
 class _LinescoreInning(BaseModel):
     model_config = _BRONZE_CONFIG
 
     num: int
     ordinalNum: str
-    home: dict[str, int | None] | None = None
-    away: dict[str, int | None] | None = None
+    home: _InningStats | None = None
+    away: _InningStats | None = None
 
 
 class _LinescoreTeamStats(BaseModel):
@@ -169,8 +180,8 @@ class _BoxscoreTeamEntry(BaseModel):
     model_config = _BRONZE_CONFIG
 
     team: _TeamRef
-    teamStats: dict[str, object]
-    players: dict[str, object]
+    teamStats: dict[str, object]  # deeply nested batting/pitching aggregates
+    players: dict[str, object]  # deeply nested per-player stat lines
     batters: list[int]
     pitchers: list[int]
     bench: list[int]
@@ -222,7 +233,7 @@ class _LiveData(BaseModel):
 
     model_config = _BRONZE_CONFIG
 
-    plays: dict[str, object] | None = None
+    plays: dict[str, object] | None = None  # deeply nested play-by-play data
     linescore: _Linescore
     boxscore: _Boxscore
     decisions: _Decisions | None = None

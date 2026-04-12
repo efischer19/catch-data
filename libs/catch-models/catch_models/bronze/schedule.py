@@ -79,13 +79,24 @@ class _ContentLink(BaseModel):
 
 
 # -- Linescore (hydrated) -------------------------------------------------
+class _InningStats(BaseModel):
+    """Per-inning run/hit/error tallies for one side (home or away)."""
+
+    model_config = _BRONZE_CONFIG
+
+    runs: int | None = None
+    hits: int | None = None
+    errors: int | None = None
+    leftOnBase: int | None = None
+
+
 class _LinescoreInning(BaseModel):
     model_config = _BRONZE_CONFIG
 
     num: int
     ordinalNum: str
-    home: dict[str, int | None] | None = None
-    away: dict[str, int | None] | None = None
+    home: _InningStats | None = None
+    away: _InningStats | None = None
 
 
 class _LinescoreTeamStats(BaseModel):
