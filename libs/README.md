@@ -9,11 +9,11 @@ Poetry-managed dependencies:
 
 ```text
 libs/
-├── example-lib/
+├── catch-models/
 │   ├── README.md          # Library-specific documentation
 │   ├── pyproject.toml     # Poetry project configuration
-│   ├── src/
-│   │   └── example-lib/ # Library source code
+│   ├── catch_models/
+│   │   └── ...           # Library source code
 │   └── tests/             # Library tests
 └── ...
 ```

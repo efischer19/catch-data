@@ -25,7 +25,9 @@ on:
         required: true
         type: choice
         options:
-          - example-app
+          - catch-ingestion
+          - catch-processing
+          - catch-analytics
       push:
         description: 'Push to ECR?'
         required: true

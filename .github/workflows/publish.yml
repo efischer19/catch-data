@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: apps/example-app
+        working-directory: apps/catch-ingestion
 
     steps:
       - name: Checkout code
@@ -24,7 +24,7 @@ jobs:
       - name: Set up Python and Poetry
         uses: ./.github/actions/setup-python-poetry
         with:
-          working-directory: apps/example-app
+          working-directory: apps/catch-ingestion
 
       - name: Build package
         run: poetry build

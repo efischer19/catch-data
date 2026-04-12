@@ -18,9 +18,15 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - app: example-app
-            dockerfile: apps/example-app/Dockerfile
-            image-name: example-app
+          - app: catch-ingestion
+            dockerfile: apps/catch-ingestion/Dockerfile
+            image-name: catch-ingestion
+          - app: catch-processing
+            dockerfile: apps/catch-processing/Dockerfile
+            image-name: catch-processing
+          - app: catch-analytics
+            dockerfile: apps/catch-analytics/Dockerfile
+            image-name: catch-analytics
 
     steps:
       - name: Checkout code
