@@ -93,10 +93,12 @@ jobs:
                 per_page: 100,
               });
 
-              const existing = pulls.find((pull) =>
-                pull.head.ref.startsWith("schema-sync/") &&
-                pull.base.ref === repoData.default_branch
-              );
+              const existing = pulls.find((pull) => {
+                return (
+                  pull.head.ref.startsWith("schema-sync/") &&
+                  pull.base.ref === repoData.default_branch
+                );
+              });
 
               core.setOutput(
                 "branch_name",
@@ -147,7 +149,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          if git ls-remote --exit-code --heads origin "${BRANCH_NAME}" >/dev/null 2>&1; then
+          if git ls-remote --quiet --exit-code --heads origin "${BRANCH_NAME}" >/dev/null; then
             git fetch origin "${BRANCH_NAME}"
             git checkout -B "${BRANCH_NAME}" "origin/${BRANCH_NAME}"
           else
@@ -196,7 +198,7 @@ jobs:
               `- Source ref: \`${process.env.SOURCE_REF}\``,
             ].join("\n");
 
-            if (process.env.PR_NUMBER) {
+            if (process.env.PR_NUMBER && process.env.PR_NUMBER !== "") {
               core.info(`Updating existing schema sync PR #${process.env.PR_NUMBER}.`);
               await github.rest.pulls.update({
                 owner,
