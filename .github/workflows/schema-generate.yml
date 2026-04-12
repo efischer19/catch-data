@@ -72,7 +72,7 @@ jobs:
         id: source-context
         run: |
           echo "source_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-          echo "source_ref=main" >> "$GITHUB_OUTPUT"
+          echo "source_ref=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
 
       - name: Exit cleanly when schema is unchanged
         if: steps.schema-diff.outputs.changed == 'false'

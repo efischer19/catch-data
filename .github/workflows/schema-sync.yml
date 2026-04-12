@@ -62,7 +62,7 @@ jobs:
         id: auth
         run: |
           if [ -z "${SYNC_TOKEN}" ]; then
-            echo "::notice::Skipping schema sync because no cross-repo token is configured. Set repository secret CATCH_APP_SYNC_TOKEN, or pass reusable-workflow secret catch_app_sync_token, using a fine-grained PAT or GitHub App token limited to contents:write and pull-requests:write on catch-app only."
+            echo "::notice::Skipping schema sync because no cross-repo token is configured. Configure CATCH_APP_SYNC_TOKEN (or reusable-workflow secret catch_app_sync_token) before enabling this automation."
             echo "ready=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
