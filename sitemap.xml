@@ -1,35 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>https://{{GITHUB_OWNER}}.github.io/{{PROJECT_NAME}}/</loc>
-         <lastmod>2026-04-11</lastmod>
+         <loc>https://efischer19.github.io/catch-data/</loc>
+         <lastmod>2026-04-12</lastmod>
     </url>
     <url>
-         <loc>https://{{GITHUB_OWNER}}.github.io/{{PROJECT_NAME}}/CONTRIBUTING/</loc>
-         <lastmod>2026-04-11</lastmod>
+         <loc>https://efischer19.github.io/catch-data/CONTRIBUTING/</loc>
+         <lastmod>2026-04-12</lastmod>
     </url>
     <url>
-         <loc>https://{{GITHUB_OWNER}}.github.io/{{PROJECT_NAME}}/DEVELOPMENT_PHILOSOPHY/</loc>
-         <lastmod>2026-04-11</lastmod>
+         <loc>https://efischer19.github.io/catch-data/DEVELOPMENT_PHILOSOPHY/</loc>
+         <lastmod>2026-04-12</lastmod>
     </url>
     <url>
-         <loc>https://{{GITHUB_OWNER}}.github.io/{{PROJECT_NAME}}/DOCUMENTATION_README/</loc>
-         <lastmod>2026-04-11</lastmod>
+         <loc>https://efischer19.github.io/catch-data/DOCUMENTATION_README/</loc>
+         <lastmod>2026-04-12</lastmod>
     </url>
     <url>
-         <loc>https://{{GITHUB_OWNER}}.github.io/{{PROJECT_NAME}}/FEATURE_REQUEST_AUTOMATION/</loc>
-         <lastmod>2026-04-11</lastmod>
+         <loc>https://efischer19.github.io/catch-data/FEATURE_REQUEST_AUTOMATION/</loc>
+         <lastmod>2026-04-12</lastmod>
     </url>
     <url>
-         <loc>https://{{GITHUB_OWNER}}.github.io/{{PROJECT_NAME}}/LOCAL_DEVELOPMENT_DEPENDENCIES/</loc>
-         <lastmod>2026-04-11</lastmod>
+         <loc>https://efischer19.github.io/catch-data/LOCAL_DEVELOPMENT_DEPENDENCIES/</loc>
+         <lastmod>2026-04-12</lastmod>
     </url>
     <url>
-         <loc>https://{{GITHUB_OWNER}}.github.io/{{PROJECT_NAME}}/MEDALLION_ARCHITECTURE/</loc>
-         <lastmod>2026-04-11</lastmod>
+         <loc>https://efischer19.github.io/catch-data/MEDALLION_ARCHITECTURE/</loc>
+         <lastmod>2026-04-12</lastmod>
     </url>
     <url>
-         <loc>https://{{GITHUB_OWNER}}.github.io/{{PROJECT_NAME}}/SHARED_LIBRARY_VERSIONING/</loc>
-         <lastmod>2026-04-11</lastmod>
+         <loc>https://efischer19.github.io/catch-data/SHARED_LIBRARY_VERSIONING/</loc>
+         <lastmod>2026-04-12</lastmod>
     </url>
 </urlset>
