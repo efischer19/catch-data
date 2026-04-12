@@ -137,6 +137,7 @@ paths.gold("daily-active-users")
 ```bash
 cd libs/catch-models
 poetry install
+poetry run python -m catch_models.schema
 poetry run pytest
 poetry run ruff check .
 poetry run ruff format --check .

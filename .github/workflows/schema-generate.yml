@@ -1,0 +1,89 @@
+name: Generate Gold Schema
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "libs/catch-models/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate-schema:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python and Poetry
+        uses: ./.github/actions/setup-python-poetry
+        with:
+          working-directory: libs/catch-models
+
+      - name: Generate schema.json from Gold models
+        working-directory: libs/catch-models
+        run: poetry run python -m catch_models.schema
+
+      - name: Validate generated schema against the JSON Schema meta-schema
+        working-directory: libs/catch-models
+        run: |
+          poetry run python - <<'PY'
+          import json
+          from pathlib import Path
+
+          from jsonschema.validators import validator_for
+
+          schema = json.loads(Path("schema.json").read_text(encoding="utf-8"))
+          validator_for(schema).check_schema(schema)
+          print("✅ schema.json is valid JSON Schema")
+          PY
+
+      - name: Check for schema drift
+        id: schema-diff
+        run: |
+          if git diff --quiet -- libs/catch-models/schema.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "✅ schema.json is already up to date"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "ℹ️ schema.json changed after regeneration"
+            git --no-pager diff -- libs/catch-models/schema.json
+          fi
+
+      - name: Commit updated schema.json
+        if: steps.schema-diff.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add libs/catch-models/schema.json
+          git commit -m "chore: regenerate schema.json from Gold models"
+          git push
+
+      - name: Trigger cross-repo schema sync workflow
+        if: steps.schema-diff.outputs.changed == 'true'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          curl --fail \
+            --request POST \
+            --url "https://api.github.com/repos/${{ github.repository }}/dispatches" \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer $GITHUB_TOKEN" \
+            --data @- <<'EOF'
+          {
+            "event_type": "schema-json-updated",
+            "client_payload": {
+              "schema_path": "libs/catch-models/schema.json",
+              "source_ref": "main"
+            }
+          }
+          EOF
+
+      - name: Exit cleanly when schema is unchanged
+        if: steps.schema-diff.outputs.changed == 'false'
+        run: echo "No schema changes detected; skipping commit and sync trigger."

@@ -1,0 +1,327 @@
+{
+  "$defs": {
+    "GoldBoxscoreSummary": {
+      "additionalProperties": false,
+      "description": "Full R/H/E line and pitching decisions for a completed game.\n\nPresent only when ``data_completeness`` is ``\"full\"`` in the Silver\nlayer (i.e., the boxscore endpoint returned successfully).  The\nfrontend uses this to render the condensed score-line beneath each\nfinished game card.\n\nField names use the traditional R/H/E abbreviations to keep the\nGold JSON payload compact.",
+      "properties": {
+        "away_e": {
+          "description": "Away errors",
+          "title": "Away E",
+          "type": "integer"
+        },
+        "away_h": {
+          "description": "Away hits",
+          "title": "Away H",
+          "type": "integer"
+        },
+        "away_r": {
+          "description": "Away runs",
+          "title": "Away R",
+          "type": "integer"
+        },
+        "home_e": {
+          "description": "Home errors",
+          "title": "Home E",
+          "type": "integer"
+        },
+        "home_h": {
+          "description": "Home hits",
+          "title": "Home H",
+          "type": "integer"
+        },
+        "home_r": {
+          "description": "Home runs",
+          "title": "Home R",
+          "type": "integer"
+        },
+        "losing_pitcher": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Losing pitcher full name",
+          "title": "Losing Pitcher"
+        },
+        "save_pitcher": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Save pitcher full name, if any",
+          "title": "Save Pitcher"
+        },
+        "winning_pitcher": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Winning pitcher full name",
+          "title": "Winning Pitcher"
+        }
+      },
+      "required": [
+        "away_r",
+        "away_h",
+        "away_e",
+        "home_r",
+        "home_h",
+        "home_e"
+      ],
+      "title": "GoldBoxscoreSummary",
+      "type": "object"
+    },
+    "GoldGameSummary": {
+      "additionalProperties": false,
+      "description": "Single-game view model consumed by the catch-app frontend.\n\nThis is the atomic unit of both :class:`GoldTeamSchedule` and\n:class:`GoldUpcomingGames`.  Fields are ordered from most- to\nleast-frequently accessed to aid human readability of the raw JSON.\n\nNullable fields\n---------------\n* ``score`` / ``score_display`` \u2014 absent for pre-game or postponed\n* ``condensed_game_url`` \u2014 absent when MLB has not published a clip\n* ``boxscore_summary`` \u2014 absent for incomplete or postponed games\n\nDoubleheader handling\n---------------------\nBoth games share the same calendar date but have distinct\n``game_pk`` values and a ``game_number`` of 1 or 2.  The frontend\nuses ``game_number`` to render \"Game 1\" / \"Game 2\" labels.\n\nStatus values\n-------------\nThe frontend must handle at least: ``Final``, ``Postponed``,\n``Scheduled``, ``In Progress``.  The raw ``status_detail`` string\nfrom the Silver layer is surfaced here unchanged.",
+      "properties": {
+        "away_team": {
+          "$ref": "#/$defs/GoldTeamInfo"
+        },
+        "boxscore_summary": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GoldBoxscoreSummary"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Full R/H/E line and pitching decisions; null for incomplete games"
+        },
+        "condensed_game_url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Condensed game highlight video URL; null when not yet available",
+          "title": "Condensed Game Url"
+        },
+        "date": {
+          "description": "Scheduled first-pitch timestamp in UTC",
+          "format": "date-time",
+          "title": "Date",
+          "type": "string"
+        },
+        "game_number": {
+          "default": 1,
+          "description": "Doubleheader game number (1 for single games)",
+          "minimum": 1,
+          "title": "Game Number",
+          "type": "integer"
+        },
+        "game_pk": {
+          "description": "Unique MLB game identifier",
+          "title": "Game Pk",
+          "type": "integer"
+        },
+        "home_team": {
+          "$ref": "#/$defs/GoldTeamInfo"
+        },
+        "score": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/GoldScore"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Run totals; null for pre-game or postponed games"
+        },
+        "score_display": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Pre-formatted score string for display (e.g. '3-5'); null when score is null",
+          "title": "Score Display"
+        },
+        "status": {
+          "description": "Game status: Final, Postponed, Scheduled, In Progress, etc.",
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "game_pk",
+        "date",
+        "status",
+        "home_team",
+        "away_team"
+      ],
+      "title": "GoldGameSummary",
+      "type": "object"
+    },
+    "GoldScore": {
+      "additionalProperties": false,
+      "description": "Run totals for a completed or in-progress game.\n\nAbsent (``None``) for games that have not yet started or are\npostponed.  The pre-formatted :attr:`GoldGameSummary.score_display`\nstring is the canonical display value; this model holds the raw\nintegers for any arithmetic the frontend may need.",
+      "properties": {
+        "away": {
+          "description": "Away team runs scored",
+          "title": "Away",
+          "type": "integer"
+        },
+        "home": {
+          "description": "Home team runs scored",
+          "title": "Home",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "away",
+        "home"
+      ],
+      "title": "GoldScore",
+      "type": "object"
+    },
+    "GoldTeamInfo": {
+      "additionalProperties": false,
+      "description": "Lightweight team identity snapshot embedded in each game summary.\n\nLeague and division are included so the frontend can filter or group\ngames without a separate team-lookup call.",
+      "properties": {
+        "abbreviation": {
+          "description": "Three-letter team abbreviation",
+          "title": "Abbreviation",
+          "type": "string"
+        },
+        "division": {
+          "description": "Division name (e.g. AL East)",
+          "title": "Division",
+          "type": "string"
+        },
+        "id": {
+          "description": "MLB team identifier",
+          "title": "Id",
+          "type": "integer"
+        },
+        "league": {
+          "description": "League name (e.g. American League)",
+          "title": "League",
+          "type": "string"
+        },
+        "name": {
+          "description": "Full team name",
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "abbreviation",
+        "league",
+        "division"
+      ],
+      "title": "GoldTeamInfo",
+      "type": "object"
+    },
+    "GoldTeamSchedule": {
+      "additionalProperties": false,
+      "description": "Full season schedule for a single MLB team.\n\nSerialised to ``gold/team_{team_id}.json`` and served via CloudFront.\nContains every game in the season, ordered by date ascending.\n\nThe ``team_id``, ``team_name``, and ``team_abbreviation`` fields at\nthe top level are denormalised from :class:`GoldTeamInfo` for\nconvenience (the frontend needs them without iterating games).",
+      "properties": {
+        "games": {
+          "description": "All season games for the team, ordered by date ascending",
+          "items": {
+            "$ref": "#/$defs/GoldGameSummary"
+          },
+          "title": "Games",
+          "type": "array"
+        },
+        "last_updated": {
+          "description": "UTC timestamp when this file was last generated",
+          "format": "date-time",
+          "title": "Last Updated",
+          "type": "string"
+        },
+        "season_year": {
+          "description": "MLB season year",
+          "minimum": 1876,
+          "title": "Season Year",
+          "type": "integer"
+        },
+        "team_abbreviation": {
+          "description": "Three-letter team abbreviation",
+          "title": "Team Abbreviation",
+          "type": "string"
+        },
+        "team_id": {
+          "description": "MLB team identifier",
+          "title": "Team Id",
+          "type": "integer"
+        },
+        "team_name": {
+          "description": "Full team name",
+          "title": "Team Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "team_id",
+        "team_name",
+        "team_abbreviation",
+        "season_year"
+      ],
+      "title": "GoldTeamSchedule",
+      "type": "object"
+    },
+    "GoldUpcomingGames": {
+      "additionalProperties": false,
+      "description": "Consolidated upcoming and recently completed games across all teams.\n\nSerialised to ``gold/upcoming_games.json`` and served via CloudFront.\nContains games in a rolling window (yesterday through 7 days out) to\nkeep the file size small and data transfer costs low.\n\nThe window bounds are determined by the analytics Lambda at generation\ntime; this model does not enforce them so tests remain deterministic.",
+      "properties": {
+        "games": {
+          "description": "Games in the rolling window (yesterday \u2026 +7 days), ordered by date",
+          "items": {
+            "$ref": "#/$defs/GoldGameSummary"
+          },
+          "title": "Games",
+          "type": "array"
+        },
+        "last_updated": {
+          "description": "UTC timestamp when this file was last generated",
+          "format": "date-time",
+          "title": "Last Updated",
+          "type": "string"
+        }
+      },
+      "title": "GoldUpcomingGames",
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Bundled JSON Schemas for Gold-layer public models.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/GoldTeamSchedule"
+    },
+    {
+      "$ref": "#/$defs/GoldUpcomingGames"
+    }
+  ],
+  "title": "Catch Data Gold Schemas"
+}
