@@ -26,6 +26,8 @@ import os
 
 import click
 
+logger = logging.getLogger(__name__)
+
 
 # ---------------------------------------------------------------------------
 # S3 reader — replace with real boto3 calls
