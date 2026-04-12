@@ -116,7 +116,13 @@ paths.gold("daily-active-users")
 * **`SilverEntity`** — Generic Silver-layer example model
 * **`SilverGame`** — Silver-layer cleaned MLB game record
 * **`SilverMasterSchedule`** — Season container for Silver games
-* **`GoldMetric`** — Aggregated business metric
+* **`GoldMetric`** — Aggregated business metric (generic skeleton)
+* **`GoldTeamInfo`** — Lightweight team identity (id, name, abbreviation, league, division)
+* **`GoldScore`** — Lightweight run totals (away / home) for display
+* **`GoldBoxscoreSummary`** — Full R/H/E line + pitching decisions for completed games
+* **`GoldGameSummary`** — Single-game view model consumed by the catch-app frontend
+* **`GoldTeamSchedule`** — Full season schedule for one team (`gold/team_{id}.json`)
+* **`GoldUpcomingGames`** — Rolling-window view of near-term games (`gold/upcoming_games.json`)
 
 ### Utilities
 
