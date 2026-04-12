@@ -1,0 +1,9 @@
+{
+  "copyright": "Copyright 2024 MLB Advanced Media, L.P.  Use of any content on this page acknowledges agreement to the terms posted here http://gdx.mlb.com/components/copyright.txt",
+  "totalItems": 1,
+  "totalEvents": 0,
+  "totalGames": 1,
+  "totalGamesInProgress": 0,
+  "dates": [],
+  "newUnexpectedField": "this should cause a validation error"
+}

@@ -1,0 +1,291 @@
+{
+  "copyright": "Copyright 2024 MLB Advanced Media, L.P.  Use of any content on this page acknowledges agreement to the terms posted here http://gdx.mlb.com/components/copyright.txt",
+  "totalItems": 4,
+  "totalEvents": 0,
+  "totalGames": 4,
+  "totalGamesInProgress": 0,
+  "dates": [
+    {
+      "date": "2024-07-20",
+      "totalItems": 3,
+      "totalEvents": 0,
+      "totalGames": 3,
+      "totalGamesInProgress": 0,
+      "games": [
+        {
+          "gamePk": 746100,
+          "gameGuid": "11111111-aaaa-bbbb-cccc-111111111111",
+          "link": "/api/v1.1/game/746100/feed/live",
+          "gameType": "R",
+          "season": "2024",
+          "gameDate": "2024-07-20T17:10:00Z",
+          "officialDate": "2024-07-20",
+          "status": {
+            "abstractGameState": "Final",
+            "codedGameState": "F",
+            "detailedState": "Final",
+            "statusCode": "F",
+            "startTimeTBD": false,
+            "abstractGameCode": "F"
+          },
+          "teams": {
+            "away": {
+              "leagueRecord": {"wins": 55, "losses": 40, "pct": ".579"},
+              "score": 4,
+              "team": {"id": 136, "name": "Seattle Mariners", "link": "/api/v1/teams/136"},
+              "isWinner": true,
+              "splitSquad": false,
+              "seriesNumber": 35
+            },
+            "home": {
+              "leagueRecord": {"wins": 50, "losses": 45, "pct": ".526"},
+              "score": 2,
+              "team": {"id": 133, "name": "Oakland Athletics", "link": "/api/v1/teams/133"},
+              "isWinner": false,
+              "splitSquad": false,
+              "seriesNumber": 35
+            }
+          },
+          "venue": {"id": 10, "name": "Oakland Coliseum", "link": "/api/v1/venues/10"},
+          "content": {"link": "/api/v1/game/746100/content"},
+          "isTie": false,
+          "gameNumber": 1,
+          "publicFacing": true,
+          "doubleHeader": "Y",
+          "gamedayType": "P",
+          "tiebreaker": "N",
+          "calendarEventID": "14-746100-2024-07-20",
+          "seasonDisplay": "2024",
+          "dayNight": "day",
+          "scheduledInnings": 9,
+          "reverseHomeAwayStatus": false,
+          "inningBreakLength": 120,
+          "gamesInSeries": 4,
+          "seriesGameNumber": 2,
+          "seriesDescription": "Regular Season",
+          "recordSource": "S",
+          "ifNecessary": "N",
+          "ifNecessaryDescription": "Normal Game",
+          "linescore": {
+            "currentInning": 9,
+            "currentInningOrdinal": "9th",
+            "inningState": "Bottom",
+            "inningHalf": "Bottom",
+            "isTopInning": false,
+            "scheduledInnings": 9,
+            "innings": [
+              {"num": 1, "ordinalNum": "1st", "home": {"runs": 0, "hits": 0, "errors": 0, "leftOnBase": 0}, "away": {"runs": 1, "hits": 2, "errors": 0, "leftOnBase": 1}}
+            ],
+            "teams": {
+              "home": {"runs": 2, "hits": 6, "errors": 0, "leftOnBase": 5},
+              "away": {"runs": 4, "hits": 9, "errors": 0, "leftOnBase": 4}
+            }
+          }
+        },
+        {
+          "gamePk": 746101,
+          "gameGuid": "22222222-aaaa-bbbb-cccc-222222222222",
+          "link": "/api/v1.1/game/746101/feed/live",
+          "gameType": "R",
+          "season": "2024",
+          "gameDate": "2024-07-20T22:10:00Z",
+          "officialDate": "2024-07-20",
+          "status": {
+            "abstractGameState": "Final",
+            "codedGameState": "F",
+            "detailedState": "Final",
+            "statusCode": "F",
+            "startTimeTBD": false,
+            "abstractGameCode": "F"
+          },
+          "teams": {
+            "away": {
+              "leagueRecord": {"wins": 55, "losses": 40, "pct": ".579"},
+              "score": 1,
+              "team": {"id": 136, "name": "Seattle Mariners", "link": "/api/v1/teams/136"},
+              "isWinner": false,
+              "splitSquad": false,
+              "seriesNumber": 35
+            },
+            "home": {
+              "leagueRecord": {"wins": 51, "losses": 45, "pct": ".531"},
+              "score": 6,
+              "team": {"id": 133, "name": "Oakland Athletics", "link": "/api/v1/teams/133"},
+              "isWinner": true,
+              "splitSquad": false,
+              "seriesNumber": 35
+            }
+          },
+          "venue": {"id": 10, "name": "Oakland Coliseum", "link": "/api/v1/venues/10"},
+          "content": {"link": "/api/v1/game/746101/content"},
+          "isTie": false,
+          "gameNumber": 2,
+          "publicFacing": true,
+          "doubleHeader": "Y",
+          "gamedayType": "P",
+          "tiebreaker": "N",
+          "calendarEventID": "14-746101-2024-07-20",
+          "seasonDisplay": "2024",
+          "dayNight": "night",
+          "scheduledInnings": 9,
+          "reverseHomeAwayStatus": false,
+          "inningBreakLength": 120,
+          "gamesInSeries": 4,
+          "seriesGameNumber": 3,
+          "seriesDescription": "Regular Season",
+          "recordSource": "S",
+          "ifNecessary": "N",
+          "ifNecessaryDescription": "Normal Game",
+          "linescore": {
+            "currentInning": 9,
+            "currentInningOrdinal": "9th",
+            "inningState": "Bottom",
+            "inningHalf": "Bottom",
+            "isTopInning": false,
+            "scheduledInnings": 9,
+            "innings": [
+              {"num": 1, "ordinalNum": "1st", "home": {"runs": 3, "hits": 2, "errors": 0, "leftOnBase": 0}, "away": {"runs": 0, "hits": 1, "errors": 0, "leftOnBase": 1}}
+            ],
+            "teams": {
+              "home": {"runs": 6, "hits": 10, "errors": 0, "leftOnBase": 3},
+              "away": {"runs": 1, "hits": 4, "errors": 1, "leftOnBase": 6}
+            }
+          }
+        },
+        {
+          "gamePk": 746200,
+          "gameGuid": "33333333-aaaa-bbbb-cccc-333333333333",
+          "link": "/api/v1.1/game/746200/feed/live",
+          "gameType": "R",
+          "season": "2024",
+          "gameDate": "2024-07-20T20:05:00Z",
+          "officialDate": "2024-07-20",
+          "status": {
+            "abstractGameState": "Final",
+            "codedGameState": "D",
+            "detailedState": "Postponed",
+            "statusCode": "DI",
+            "startTimeTBD": false,
+            "abstractGameCode": "F",
+            "reason": "Rain"
+          },
+          "teams": {
+            "away": {
+              "leagueRecord": {"wins": 48, "losses": 47, "pct": ".505"},
+              "team": {"id": 144, "name": "Atlanta Braves", "link": "/api/v1/teams/144"},
+              "splitSquad": false,
+              "seriesNumber": 35
+            },
+            "home": {
+              "leagueRecord": {"wins": 52, "losses": 43, "pct": ".547"},
+              "team": {"id": 121, "name": "New York Mets", "link": "/api/v1/teams/121"},
+              "splitSquad": false,
+              "seriesNumber": 35
+            }
+          },
+          "venue": {"id": 3289, "name": "Citi Field", "link": "/api/v1/venues/3289"},
+          "content": {"link": "/api/v1/game/746200/content"},
+          "gameNumber": 1,
+          "publicFacing": true,
+          "doubleHeader": "N",
+          "gamedayType": "P",
+          "tiebreaker": "N",
+          "calendarEventID": "14-746200-2024-07-20",
+          "seasonDisplay": "2024",
+          "dayNight": "night",
+          "description": "Postponed due to inclement weather",
+          "scheduledInnings": 9,
+          "reverseHomeAwayStatus": false,
+          "gamesInSeries": 3,
+          "seriesGameNumber": 2,
+          "seriesDescription": "Regular Season",
+          "recordSource": "S",
+          "ifNecessary": "N",
+          "ifNecessaryDescription": "Normal Game"
+        }
+      ],
+      "events": []
+    },
+    {
+      "date": "2024-08-10",
+      "totalItems": 1,
+      "totalEvents": 0,
+      "totalGames": 1,
+      "totalGamesInProgress": 0,
+      "games": [
+        {
+          "gamePk": 746500,
+          "gameGuid": "44444444-aaaa-bbbb-cccc-444444444444",
+          "link": "/api/v1.1/game/746500/feed/live",
+          "gameType": "R",
+          "season": "2024",
+          "gameDate": "2024-08-10T23:10:00Z",
+          "officialDate": "2024-08-10",
+          "status": {
+            "abstractGameState": "Final",
+            "codedGameState": "U",
+            "detailedState": "Suspended",
+            "statusCode": "UR",
+            "startTimeTBD": false,
+            "abstractGameCode": "F",
+            "reason": "Rain"
+          },
+          "teams": {
+            "away": {
+              "leagueRecord": {"wins": 60, "losses": 52, "pct": ".536"},
+              "score": 3,
+              "team": {"id": 134, "name": "Pittsburgh Pirates", "link": "/api/v1/teams/134"},
+              "isWinner": false,
+              "splitSquad": false,
+              "seriesNumber": 40
+            },
+            "home": {
+              "leagueRecord": {"wins": 58, "losses": 54, "pct": ".518"},
+              "score": 3,
+              "team": {"id": 113, "name": "Cincinnati Reds", "link": "/api/v1/teams/113"},
+              "isWinner": false,
+              "splitSquad": false,
+              "seriesNumber": 40
+            }
+          },
+          "venue": {"id": 2602, "name": "Great American Ball Park", "link": "/api/v1/venues/2602"},
+          "content": {"link": "/api/v1/game/746500/content"},
+          "isTie": true,
+          "gameNumber": 1,
+          "publicFacing": true,
+          "doubleHeader": "N",
+          "gamedayType": "P",
+          "tiebreaker": "N",
+          "calendarEventID": "14-746500-2024-08-10",
+          "seasonDisplay": "2024",
+          "dayNight": "night",
+          "description": "Suspended in the 7th inning due to rain",
+          "scheduledInnings": 9,
+          "reverseHomeAwayStatus": false,
+          "gamesInSeries": 3,
+          "seriesGameNumber": 3,
+          "seriesDescription": "Regular Season",
+          "recordSource": "S",
+          "ifNecessary": "N",
+          "ifNecessaryDescription": "Normal Game",
+          "linescore": {
+            "currentInning": 7,
+            "currentInningOrdinal": "7th",
+            "inningState": "Top",
+            "inningHalf": "Top",
+            "isTopInning": true,
+            "scheduledInnings": 9,
+            "innings": [
+              {"num": 1, "ordinalNum": "1st", "home": {"runs": 1, "hits": 1, "errors": 0, "leftOnBase": 0}, "away": {"runs": 0, "hits": 0, "errors": 0, "leftOnBase": 0}}
+            ],
+            "teams": {
+              "home": {"runs": 3, "hits": 7, "errors": 0, "leftOnBase": 5},
+              "away": {"runs": 3, "hits": 6, "errors": 1, "leftOnBase": 4}
+            }
+          }
+        }
+      ],
+      "events": []
+    }
+  ]
+}
