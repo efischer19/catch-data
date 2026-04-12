@@ -1,0 +1,18 @@
+{
+  "copyright": "Copyright 2024 MLB Advanced Media, L.P.  Use of any content on this page acknowledges agreement to the terms posted here http://gdx.mlb.com/components/copyright.txt",
+  "link": "/api/v1/game/746200/content",
+  "editorial": {
+    "recap": null,
+    "articles": null
+  },
+  "media": {
+    "epg": [],
+    "freeGame": false,
+    "enhancedGame": false
+  },
+  "highlights": {
+    "highlights": {
+      "items": []
+    }
+  }
+}
