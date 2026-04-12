@@ -142,7 +142,6 @@ class MlbStatsClient:
 
         if response.status_code == 429 or response.status_code >= 500:
             error = RetryableHTTPError(response=response)
-            error.response = response
             logger.warning("Retryable HTTP %d for %s", response.status_code, url)
             raise error
 
