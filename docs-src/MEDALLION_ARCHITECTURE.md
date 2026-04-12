@@ -26,9 +26,9 @@ layers of data quality:
 
 | Layer | Application | S3 Prefix | Description |
 | :--- | :--- | :--- | :--- |
-| **Bronze** | `apps/example-ingestion/` | `bronze/{source}/{date}/` | Raw data with minimal validation |
-| **Silver** | `apps/example-processing/` | `silver/{entity}/{date}/` | Cleaned and validated entities |
-| **Gold** | `apps/example-analytics/` | `gold/served/{metric_name}/` | Business-ready aggregations |
+| **Bronze** | `apps/catch-ingestion/` | `bronze/{source}/{date}/` | Raw data with minimal validation |
+| **Silver** | `apps/catch-processing/` | `silver/{entity}/{date}/` | Cleaned and validated entities |
+| **Gold** | `apps/catch-analytics/` | `gold/served/{metric_name}/` | Business-ready aggregations |
 
 ## S3 Key Conventions
 
@@ -42,12 +42,12 @@ s3://catch-data-data-dev/
 └── gold/served/{metric_name}/          # Business-ready aggregations
 ```
 
-The `MedallionPaths` utility in `libs/example-data/` generates these
+The `MedallionPaths` utility in `libs/catch-models/` generates these
 prefixes consistently:
 
 ```python
 from datetime import date
-from example_data import MedallionPaths
+from catch_models import MedallionPaths
 
 paths = MedallionPaths("my-project-data-dev")
 
@@ -63,7 +63,7 @@ paths.gold("daily-active-users")
 
 ## Shared Data Models
 
-The `libs/example-data/` library provides Pydantic model skeletons for
+The `libs/catch-models/` library provides Pydantic model skeletons for
 each layer:
 
 * **`BronzeRecord`** — Raw ingested record with source metadata
@@ -77,7 +77,7 @@ them with your domain-specific fields.
 
 ### 1. Define Your Data Models
 
-Edit the models in `libs/example-data/example_data/models.py` to match
+Edit the models in `libs/catch-models/catch_models/models.py` to match
 your domain:
 
 ```python
@@ -90,7 +90,7 @@ class SilverEntity(BaseModel):
 
 ### 2. Implement Data Source Logic
 
-In `apps/example-ingestion/app/main.py`, replace `fetch_from_source()`
+In `apps/catch-ingestion/app/main.py`, replace `fetch_from_source()`
 with your real data source:
 
 ```python

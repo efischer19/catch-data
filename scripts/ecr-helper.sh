@@ -145,10 +145,10 @@ Commands:
 Examples:
   $0 login
   $0 list
-  $0 list example-app
-  $0 latest example-app
-  $0 pull example-app
-  $0 pull example-app abc123
+  $0 list catch-ingestion
+  $0 latest catch-ingestion
+  $0 pull catch-ingestion
+  $0 pull catch-ingestion abc123
 EOF
 }
 

@@ -65,7 +65,7 @@ each application and library in the monorepo. See
 curl -sSL https://install.python-poetry.org | python3 -
 
 # Install a project's dependencies
-cd apps/example-app
+cd apps/catch-ingestion
 poetry install
 
 # Run a command in the project's virtual environment
