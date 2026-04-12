@@ -35,7 +35,14 @@ poetry install
 ### Data Models
 
 ```python
-from catch_models import BronzeRecord, SilverEntity, GoldMetric
+from catch_models import (
+    BronzeRecord,
+    DataCompleteness,
+    GoldMetric,
+    SilverGame,
+    SilverMasterSchedule,
+    SilverEntity,
+)
 
 # Bronze — raw ingested data
 record = BronzeRecord(
@@ -45,6 +52,35 @@ record = BronzeRecord(
 
 # Silver — cleaned and validated data
 entity = SilverEntity(entity_id="usr-123", name="Example User")
+
+silver_game = SilverGame(
+    gamePk=745678,
+    date="2026-07-04T17:05:00Z",
+    game_type="R",
+    away_team_id=111,
+    away_team_name="Boston Red Sox",
+    away_team_abbreviation="BOS",
+    home_team_id=147,
+    home_team_name="New York Yankees",
+    home_team_abbreviation="NYY",
+    venue_id=3313,
+    venue_name="Yankee Stadium",
+    status="Final",
+    status_detail="Final",
+    innings=9,
+    away_runs=3,
+    away_hits=7,
+    away_errors=1,
+    home_runs=5,
+    home_hits=9,
+    home_errors=0,
+    winning_pitcher_name="Gerrit Cole",
+    losing_pitcher_name="Chris Sale",
+    source_updated_at="2026-07-04T21:00:00Z",
+    data_completeness=DataCompleteness.FULL,
+)
+
+master_schedule = SilverMasterSchedule(year=2026, games=[silver_game])
 
 # Gold — business-ready metrics
 metric = GoldMetric(
@@ -77,7 +113,9 @@ paths.gold("daily-active-users")
 ### Models
 
 * **`BronzeRecord`** — Raw ingested record with source metadata
-* **`SilverEntity`** — Cleaned, validated entity
+* **`SilverEntity`** — Generic Silver-layer example model
+* **`SilverGame`** — Silver-layer cleaned MLB game record
+* **`SilverMasterSchedule`** — Season container for Silver games
 * **`GoldMetric`** — Aggregated business metric
 
 ### Utilities

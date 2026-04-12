@@ -14,11 +14,13 @@ from catch_models.bronze import (
 )
 from catch_models.models import BronzeRecord, GoldMetric, SilverEntity
 from catch_models.s3_paths import MedallionPaths
+from catch_models.silver import DataCompleteness, SilverGame, SilverMasterSchedule
 
 __all__ = [
     "BoxscoreResponse",
     "BronzeRecord",
     "ContentResponse",
+    "DataCompleteness",
     "GoldMetric",
     "HighlightItem",
     "MedallionPaths",
@@ -26,5 +28,7 @@ __all__ = [
     "ScheduleDate",
     "ScheduleGame",
     "ScheduleResponse",
+    "SilverGame",
+    "SilverMasterSchedule",
     "SilverEntity",
 ]
