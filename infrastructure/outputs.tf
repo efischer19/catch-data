@@ -1,4 +1,4 @@
-# Output values for {{PROJECT_NAME}} infrastructure
+# Output values for catch-data infrastructure
 # These values are useful for configuring applications and CI/CD pipelines.
 
 output "s3_bucket_name" {

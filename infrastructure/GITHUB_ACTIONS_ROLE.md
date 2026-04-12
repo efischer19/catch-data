@@ -49,9 +49,8 @@ aws iam create-open-id-connect-provider \
 
 ### Trust Policy
 
-Create a role with a trust policy that allows your repository to assume it.
-Replace `{{AWS_ACCOUNT_ID}}`, `{{GITHUB_OWNER}}`, and `{{PROJECT_NAME}}`
-with your real values:
+Create a role with a trust policy that allows the catch-data repository to assume it.
+Replace `YOUR_AWS_ACCOUNT_ID` with your real 12-digit AWS account ID:
 
 ```json
 {
@@ -60,7 +59,7 @@ with your real values:
     {
       "Effect": "Allow",
       "Principal": {
-        "Federated": "arn:aws:iam::{{AWS_ACCOUNT_ID}}:oidc-provider/token.actions.githubusercontent.com"
+        "Federated": "arn:aws:iam::YOUR_AWS_ACCOUNT_ID:oidc-provider/token.actions.githubusercontent.com"
       },
       "Action": "sts:AssumeRoleWithWebIdentity",
       "Condition": {
@@ -68,7 +67,7 @@ with your real values:
           "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
         },
         "StringLike": {
-          "token.actions.githubusercontent.com:sub": "repo:{{GITHUB_OWNER}}/{{PROJECT_NAME}}:*"
+          "token.actions.githubusercontent.com:sub": "repo:efischer19/catch-data:*"
         }
       }
     }
@@ -82,7 +81,7 @@ with your real values:
 2. Trusted entity type: **Web identity**
 3. Identity provider: `token.actions.githubusercontent.com`
 4. Audience: `sts.amazonaws.com`
-5. Role name: `{{PROJECT_NAME}}-github-actions`
+5. Role name: `catch-data-github-actions`
 6. Attach an inline policy with the permissions below
 
 ### Using the AWS CLI
@@ -91,7 +90,7 @@ Save the trust policy above to `trust-policy.json`, then:
 
 ```bash
 aws iam create-role \
-  --role-name {{PROJECT_NAME}}-github-actions \
+  --role-name catch-data-github-actions \
   --assume-role-policy-document file://trust-policy.json
 ```
 

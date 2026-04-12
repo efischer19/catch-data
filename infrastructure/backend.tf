@@ -1,19 +1,17 @@
-# Remote state backend configuration for {{PROJECT_NAME}}
+# Remote state backend configuration for catch-data
 # See ADR-016 (Terraform for IaC)
 #
 # Prerequisites — create these resources manually or with a bootstrap script
 # BEFORE running `terraform init`:
-#   1. S3 bucket for state storage ({{TF_STATE_BUCKET}})
-#   2. DynamoDB table for state locking ({{TF_LOCK_TABLE}})
-#
-# Replace all {{...}} placeholders with your real values.
+#   1. S3 bucket for state storage (catch-data-tf-state)
+#   2. DynamoDB table for state locking (catch-data-tf-lock)
 
 terraform {
   backend "s3" {
-    bucket         = "{{TF_STATE_BUCKET}}"
-    key            = "{{PROJECT_NAME}}/terraform.tfstate"
-    region         = "{{AWS_REGION}}"
-    dynamodb_table = "{{TF_LOCK_TABLE}}"
+    bucket         = "catch-data-tf-state"
+    key            = "catch-data/terraform.tfstate"
+    region         = "us-west-2"
+    dynamodb_table = "catch-data-tf-lock"
     encrypt        = true
   }
 }

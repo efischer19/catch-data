@@ -1,6 +1,6 @@
 # AI Contributor Guide
 
-This document defines the standard operating procedures for AI contributors to the `{{PROJECT_NAME}}` project. Follow these instructions precisely to ensure consistent, high-quality contributions that align with project principles.
+This document defines the standard operating procedures for AI contributors to the `catch-data` project. Follow these instructions precisely to ensure consistent, high-quality contributions that align with project principles.
 
 ## Role
 
@@ -108,8 +108,8 @@ terraform validate
 * **Never commit credentials.** No AWS access keys, secret keys, or session
   tokens in source code. Use GitHub OIDC for CI/CD authentication
   (see [ADR-017](../meta/adr/ADR-017-github_oidc_aws_auth.md)).
-* **Use placeholder values.** All AWS-specific identifiers use `{{...}}`
-  placeholders (e.g., `{{AWS_ACCOUNT_ID}}`, `{{AWS_REGION}}`).
+* **Use environment variables or Terraform variables** for AWS-specific
+  identifiers (e.g., `AWS_ACCOUNT_ID`, `AWS_REGION`). Never hardcode them.
 * **Use `boto3`** as the Python SDK for AWS service interaction.
 * **Follow least-privilege IAM.** Grant only the permissions each service
   or function requires.

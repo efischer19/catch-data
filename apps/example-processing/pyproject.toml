@@ -2,7 +2,7 @@
 name = "example-processing"
 version = "0.1.0"
 description = "Silver layer — validate and transform bronze data into clean entities"
-authors = ["{{GITHUB_OWNER}}"]
+authors = ["efischer19"]
 readme = "README.md"
 packages = [{include = "app"}]
 

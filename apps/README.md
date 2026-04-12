@@ -1,6 +1,6 @@
-# {{PROJECT_NAME}} — Applications
+# catch-data — Applications
 
-This directory contains the applications for **{{PROJECT_NAME}}**.
+This directory contains the applications for **catch-data**.
 
 ## Structure
 
@@ -9,11 +9,11 @@ Poetry-managed dependencies:
 
 ```text
 apps/
-├── {{APP_NAME}}/
+├── example-app/
 │   ├── README.md          # Application-specific documentation
 │   ├── pyproject.toml     # Poetry project configuration
 │   ├── src/
-│   │   └── {{APP_NAME}}/ # Application source code
+│   │   └── example-app/ # Application source code
 │   ├── tests/             # Application tests
 │   └── Dockerfile         # Container definition (if applicable)
 └── ...

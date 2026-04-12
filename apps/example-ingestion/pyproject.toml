@@ -2,7 +2,7 @@
 name = "example-ingestion"
 version = "0.1.0"
 description = "Bronze layer — ingest raw data from external sources into S3"
-authors = ["{{GITHUB_OWNER}}"]
+authors = ["efischer19"]
 readme = "README.md"
 packages = [{include = "app"}]
 

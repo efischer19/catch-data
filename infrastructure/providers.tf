@@ -1,4 +1,4 @@
-# AWS provider configuration for {{PROJECT_NAME}}
+# AWS provider configuration for catch-data
 # See ADR-015 (AWS as Cloud Provider)
 #
 # Version constraints are defined in versions.tf.

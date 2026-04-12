@@ -1,4 +1,4 @@
-# Contributing to {{PROJECT_NAME}}
+# Contributing to catch-data
 
 First off, thank you for your interest in contributing! We're excited you're here.
 

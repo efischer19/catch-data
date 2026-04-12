@@ -2,7 +2,7 @@
 name = "example-analytics"
 version = "0.1.0"
 description = "Gold layer — aggregate silver data into business-ready metrics"
-authors = ["{{GITHUB_OWNER}}"]
+authors = ["efischer19"]
 readme = "README.md"
 packages = [{include = "app"}]
 

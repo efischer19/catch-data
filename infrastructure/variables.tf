@@ -1,12 +1,10 @@
-# Input variables for {{PROJECT_NAME}} infrastructure
+# Input variables for catch-data infrastructure
 # See ADR-016 (Terraform for IaC)
-#
-# Replace default values with your project-specific configuration.
 
 variable "project_name" {
   description = "Project name used for resource naming and tagging"
   type        = string
-  default     = "{{PROJECT_NAME}}"
+  default     = "catch-data"
 }
 
 variable "environment" {
@@ -23,5 +21,5 @@ variable "environment" {
 variable "aws_region" {
   description = "AWS region for resource deployment"
   type        = string
-  default     = "{{AWS_REGION}}"
+  default     = "us-west-2"
 }

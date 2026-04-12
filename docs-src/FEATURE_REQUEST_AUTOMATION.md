@@ -44,7 +44,7 @@ gh auth status
 ./scripts/create-feature-issues.sh --dry-run --verbose
 
 # Preview specific category
-./scripts/create-feature-issues.sh --dry-run --category {{CATEGORY_NAME}}
+./scripts/create-feature-issues.sh --dry-run --category <category-name>
 
 # Preview high-priority items only
 ./scripts/create-feature-issues.sh --dry-run --priority high
@@ -57,10 +57,10 @@ gh auth status
 ./scripts/create-feature-issues.sh
 
 # Create only issues in a specific category
-./scripts/create-feature-issues.sh --category {{CATEGORY_NAME}}
+./scripts/create-feature-issues.sh --category <category-name>
 
 # Create only high-priority issues in a category
-./scripts/create-feature-issues.sh --category {{CATEGORY_NAME}} --priority high
+./scripts/create-feature-issues.sh --category <category-name> --priority high
 ```
 
 ## Script Options
@@ -68,7 +68,7 @@ gh auth status
 | Option | Description | Example |
 | ------ | ----------- | ------- |
 | `--dry-run` | Preview issues without creating them | `--dry-run` |
-| `--category CATEGORY` | Filter by feature category | `--category {{CATEGORY_NAME}}` |
+| `--category CATEGORY` | Filter by feature category | `--category <category-name>` |
 | `--priority PRIORITY` | Filter by priority level | `--priority high` |
 | `--verbose` | Enable detailed output | `--verbose` |
 | `--help` | Show usage information | `--help` |

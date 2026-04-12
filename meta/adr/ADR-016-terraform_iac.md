@@ -37,16 +37,15 @@ infrastructure as code.
   * `backend.tf` — State backend configuration (S3 + DynamoDB)
 * Use a `modules/` subdirectory for reusable Terraform modules.
 * **Remote state** is stored in S3 with DynamoDB locking. The backend
-  configuration uses placeholder values that downstream projects must
-  replace.
+  is configured for `catch-data` (see `backend.tf`).
 * Use `terraform plan` in CI to preview changes on pull requests.
 * Use `terraform apply` only from the `main` branch or via manual
   dispatch.
 * Pin the Terraform version and AWS provider version for
   reproducibility.
-* Use placeholder values (`{{AWS_ACCOUNT_ID}}`, `{{AWS_REGION}}`,
-  `{{TF_STATE_BUCKET}}`, `{{TF_LOCK_TABLE}}`) — never commit real
-  resource identifiers.
+* Never commit real AWS account IDs, ARNs, or resource identifiers to
+  version control. Use environment variables or GitHub Actions secrets
+  for account-specific values like `AWS_ACCOUNT_ID` and `AWS_ROLE_ARN`.
 
 ### Directory Structure
 

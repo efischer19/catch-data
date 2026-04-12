@@ -36,7 +36,7 @@ All data is stored in a single S3 bucket with key prefixes to separate
 the layers:
 
 ```text
-s3://{{S3_BUCKET_NAME}}/
+s3://catch-data-data-dev/
 ├── bronze/{source}/{YYYY-MM-DD}/       # Raw ingested data
 ├── silver/{entity}/{YYYY-MM-DD}/       # Cleaned & validated data
 └── gold/served/{metric_name}/          # Business-ready aggregations

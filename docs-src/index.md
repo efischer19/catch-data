@@ -1,10 +1,10 @@
-# {{PROJECT_NAME}} Documentation
+# catch-data Documentation
 
-Welcome to the official documentation for **{{PROJECT_NAME}}**.
+Welcome to the official documentation for **catch-data**.
 
 ## Overview
 
-{{PROJECT_NAME}} is built on top of the
+catch-data is built on top of the
 [blueprint-repo-blueprints](https://github.com/efischer19/blueprint-repo-blueprints)
 template, which provides a language-agnostic foundation for documentation,
 architecture decision records, and developer tooling.
@@ -16,7 +16,7 @@ architecture decision records, and developer tooling.
 ## Project Structure
 
 ```text
-{{PROJECT_NAME}}/
+catch-data/
 ├── meta/           # Development philosophy, ADRs, and plans
 ├── docs-src/       # Documentation source files (MkDocs)
 ├── scripts/        # Utility and automation scripts
@@ -41,7 +41,7 @@ For information on contributing to this project, see the
 ## Getting Help
 
 - Check the documentation pages listed in the navigation
-- Review the [Architecture Decision Records](https://github.com/{{GITHUB_OWNER}}/{{PROJECT_NAME}}/tree/main/meta/adr)
+- Review the [Architecture Decision Records](https://github.com/efischer19/catch-data/tree/main/meta/adr)
   for context on past decisions
-- [Open an issue](https://github.com/{{GITHUB_OWNER}}/{{PROJECT_NAME}}/issues)
+- [Open an issue](https://github.com/efischer19/catch-data/issues)
   if you find a bug or want to suggest a feature

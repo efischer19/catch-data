@@ -38,15 +38,14 @@ Once setup is complete:
    The infrastructure workflow will run `terraform plan` automatically and
    post the results as a PR comment. Changes are applied on merge to `main`.
 
-## Placeholder Values
+## Project Configuration
 
-| Placeholder | Description | Example |
-| :--- | :--- | :--- |
-| `{{AWS_ACCOUNT_ID}}` | Your AWS account ID | `123456789012` |
-| `{{AWS_REGION}}` | Target AWS region | `us-east-1` |
-| `{{TF_STATE_BUCKET}}` | S3 bucket for Terraform state | `my-project-tf-state` |
-| `{{TF_LOCK_TABLE}}` | DynamoDB table for state locking | `my-project-tf-lock` |
-| `{{PROJECT_NAME}}` | Your project name | `my-data-project` |
+| Setting | Value |
+| :--- | :--- |
+| AWS Region | `us-west-2` |
+| Terraform state bucket | `catch-data-tf-state` |
+| Terraform lock table | `catch-data-tf-lock` |
+| Project name | `catch-data` |
 
 > **Note:** Never commit real AWS account IDs, ARNs, or credentials to version
 > control.

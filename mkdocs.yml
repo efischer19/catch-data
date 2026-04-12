@@ -1,6 +1,6 @@
-site_name: "{{PROJECT_NAME}} Documentation"
-site_description: "Documentation for {{PROJECT_NAME}}"
-site_url: "https://{{GITHUB_OWNER}}.github.io/{{PROJECT_NAME}}/"
+site_name: "catch-data Documentation"
+site_description: "Documentation for catch-data"
+site_url: "https://efischer19.github.io/catch-data/"
 docs_dir: docs-src
 
 theme:
@@ -43,4 +43,4 @@ markdown_extensions:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: "https://github.com/{{GITHUB_OWNER}}/{{PROJECT_NAME}}"
+      link: "https://github.com/efischer19/catch-data"
