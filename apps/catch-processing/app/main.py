@@ -165,6 +165,11 @@ def _team_abbreviation(
         return _TEAM_ABBREVIATIONS_BY_ID[team_id]
     if team_name in _TEAM_ABBREVIATIONS_BY_NAME:
         return _TEAM_ABBREVIATIONS_BY_NAME[team_name]
+    logger.warning(
+        "Falling back to derived team abbreviation for id=%s name=%s",
+        team_id,
+        team_name,
+    )
     letters = [token[0] for token in team_name.split() if token and token[0].isalpha()]
     return "".join(letters[:3]).upper()
 
@@ -246,8 +251,7 @@ def _is_missing_object_error(error: Exception) -> bool:
 
 def _read_json_bytes(s3_client: Any, bucket: str, key: str) -> bytes:
     response = s3_client.get_object(Bucket=bucket, Key=key)
-    body = response["Body"].read()
-    return body if isinstance(body, bytes) else body.encode("utf-8")
+    return response["Body"].read()
 
 
 def _read_model_from_s3(

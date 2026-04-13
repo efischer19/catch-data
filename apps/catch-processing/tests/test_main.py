@@ -12,9 +12,16 @@ from click.testing import CliRunner
 
 from app import main
 
-FIXTURES = (
-    Path(__file__).resolve().parents[3] / "libs" / "catch-models" / "tests" / "fixtures"
-)
+
+def _repo_root() -> Path:
+    for candidate in Path(__file__).resolve().parents:
+        fixtures = candidate / "libs" / "catch-models" / "tests" / "fixtures"
+        if fixtures.exists():
+            return candidate
+    raise RuntimeError("Unable to locate repository root for shared test fixtures")
+
+
+FIXTURES = _repo_root() / "libs" / "catch-models" / "tests" / "fixtures"
 
 
 def _load_fixture(name: str) -> dict:
