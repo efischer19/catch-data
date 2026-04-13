@@ -149,6 +149,149 @@
       "events": []
     },
     {
+      "date": "2025-06-15",
+      "totalItems": 1,
+      "totalEvents": 0,
+      "totalGames": 1,
+      "totalGamesInProgress": 0,
+      "games": [
+        {
+          "gamePk": 752400,
+          "gameGuid": "00752400-aaaa-bbbb-cccc-000000752400",
+          "link": "/api/v1.1/game/752400/feed/live",
+          "gameType": "R",
+          "season": "2025",
+          "gameDate": "2025-06-15T18:10:00Z",
+          "officialDate": "2025-06-15",
+          "status": {
+            "abstractGameState": "Final",
+            "codedGameState": "F",
+            "detailedState": "Final",
+            "statusCode": "F",
+            "startTimeTBD": false,
+            "abstractGameCode": "F"
+          },
+          "teams": {
+            "away": {
+              "leagueRecord": {
+                "wins": 40,
+                "losses": 30,
+                "pct": ".571"
+              },
+              "score": 5,
+              "team": {
+                "id": 147,
+                "name": "New York Yankees",
+                "link": "/api/v1/teams/147"
+              },
+              "isWinner": true,
+              "splitSquad": false,
+              "seriesNumber": 30
+            },
+            "home": {
+              "leagueRecord": {
+                "wins": 35,
+                "losses": 35,
+                "pct": ".500"
+              },
+              "score": 3,
+              "team": {
+                "id": 111,
+                "name": "Boston Red Sox",
+                "link": "/api/v1/teams/111"
+              },
+              "isWinner": false,
+              "splitSquad": false,
+              "seriesNumber": 30
+            }
+          },
+          "venue": {
+            "id": 3,
+            "name": "Fenway Park",
+            "link": "/api/v1/venues/3"
+          },
+          "content": {
+            "link": "/api/v1/game/752400/content"
+          },
+          "isTie": false,
+          "gameNumber": 1,
+          "publicFacing": true,
+          "doubleHeader": "N",
+          "gamedayType": "P",
+          "tiebreaker": "N",
+          "calendarEventID": "14-752400-2025-06-15",
+          "seasonDisplay": "2025",
+          "dayNight": "day",
+          "scheduledInnings": 9,
+          "reverseHomeAwayStatus": false,
+          "inningBreakLength": 120,
+          "gamesInSeries": 3,
+          "seriesGameNumber": 1,
+          "seriesDescription": "Regular Season",
+          "recordSource": "S",
+          "ifNecessary": "N",
+          "ifNecessaryDescription": "Normal Game",
+          "linescore": {
+            "currentInning": 9,
+            "currentInningOrdinal": "9th",
+            "inningState": "Bottom",
+            "inningHalf": "Bottom",
+            "isTopInning": false,
+            "scheduledInnings": 9,
+            "innings": [
+              {
+                "num": 1,
+                "ordinalNum": "1st",
+                "home": {
+                  "runs": 0,
+                  "hits": 1,
+                  "errors": 0,
+                  "leftOnBase": 1
+                },
+                "away": {
+                  "runs": 2,
+                  "hits": 2,
+                  "errors": 0,
+                  "leftOnBase": 0
+                }
+              },
+              {
+                "num": 2,
+                "ordinalNum": "2nd",
+                "home": {
+                  "runs": 1,
+                  "hits": 1,
+                  "errors": 0,
+                  "leftOnBase": 0
+                },
+                "away": {
+                  "runs": 0,
+                  "hits": 0,
+                  "errors": 0,
+                  "leftOnBase": 0
+                }
+              }
+            ],
+            "teams": {
+              "home": {
+                "runs": 3,
+                "hits": 8,
+                "errors": 1,
+                "leftOnBase": 6
+              },
+              "away": {
+                "runs": 5,
+                "hits": 10,
+                "errors": 0,
+                "leftOnBase": 5
+              }
+            }
+          }
+        }
+      ],
+      "events": []
+    },
+    {
       "date": "2025-07-20",
       "totalItems": 3,
       "totalEvents": 0,
@@ -467,144 +610,11 @@
     },
     {
       "date": "2025-09-18",
-      "totalItems": 2,
+      "totalItems": 1,
       "totalEvents": 0,
-      "totalGames": 2,
+      "totalGames": 1,
       "totalGamesInProgress": 0,
       "games": [
-        {
-          "gamePk": 752400,
-          "gameGuid": "00752400-aaaa-bbbb-cccc-000000752400",
-          "link": "/api/v1.1/game/752400/feed/live",
-          "gameType": "R",
-          "season": "2025",
-          "gameDate": "2025-06-15T18:10:00Z",
-          "officialDate": "2025-06-15",
-          "status": {
-            "abstractGameState": "Final",
-            "codedGameState": "F",
-            "detailedState": "Final",
-            "statusCode": "F",
-            "startTimeTBD": false,
-            "abstractGameCode": "F"
-          },
-          "teams": {
-            "away": {
-              "leagueRecord": {
-                "wins": 40,
-                "losses": 30,
-                "pct": ".571"
-              },
-              "score": 5,
-              "team": {
-                "id": 147,
-                "name": "New York Yankees",
-                "link": "/api/v1/teams/147"
-              },
-              "isWinner": true,
-              "splitSquad": false,
-              "seriesNumber": 30
-            },
-            "home": {
-              "leagueRecord": {
-                "wins": 35,
-                "losses": 35,
-                "pct": ".500"
-              },
-              "score": 3,
-              "team": {
-                "id": 111,
-                "name": "Boston Red Sox",
-                "link": "/api/v1/teams/111"
-              },
-              "isWinner": false,
-              "splitSquad": false,
-              "seriesNumber": 30
-            }
-          },
-          "venue": {
-            "id": 3,
-            "name": "Fenway Park",
-            "link": "/api/v1/venues/3"
-          },
-          "content": {
-            "link": "/api/v1/game/752400/content"
-          },
-          "isTie": false,
-          "gameNumber": 1,
-          "publicFacing": true,
-          "doubleHeader": "N",
-          "gamedayType": "P",
-          "tiebreaker": "N",
-          "calendarEventID": "14-752400-2025-06-15",
-          "seasonDisplay": "2025",
-          "dayNight": "day",
-          "scheduledInnings": 9,
-          "reverseHomeAwayStatus": false,
-          "inningBreakLength": 120,
-          "gamesInSeries": 3,
-          "seriesGameNumber": 1,
-          "seriesDescription": "Regular Season",
-          "recordSource": "S",
-          "ifNecessary": "N",
-          "ifNecessaryDescription": "Normal Game",
-          "linescore": {
-            "currentInning": 9,
-            "currentInningOrdinal": "9th",
-            "inningState": "Bottom",
-            "inningHalf": "Bottom",
-            "isTopInning": false,
-            "scheduledInnings": 9,
-            "innings": [
-              {
-                "num": 1,
-                "ordinalNum": "1st",
-                "home": {
-                  "runs": 0,
-                  "hits": 1,
-                  "errors": 0,
-                  "leftOnBase": 1
-                },
-                "away": {
-                  "runs": 2,
-                  "hits": 2,
-                  "errors": 0,
-                  "leftOnBase": 0
-                }
-              },
-              {
-                "num": 2,
-                "ordinalNum": "2nd",
-                "home": {
-                  "runs": 1,
-                  "hits": 1,
-                  "errors": 0,
-                  "leftOnBase": 0
-                },
-                "away": {
-                  "runs": 0,
-                  "hits": 0,
-                  "errors": 0,
-                  "leftOnBase": 0
-                }
-              }
-            ],
-            "teams": {
-              "home": {
-                "runs": 3,
-                "hits": 8,
-                "errors": 1,
-                "leftOnBase": 6
-              },
-              "away": {
-                "runs": 5,
-                "hits": 10,
-                "errors": 0,
-                "leftOnBase": 5
-              }
-            }
-          }
-        },
         {
           "gamePk": 752300,
           "gameGuid": "00752300-aaaa-bbbb-cccc-000000752300",

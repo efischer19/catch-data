@@ -27,8 +27,14 @@ def load_fixture(name: str) -> dict:
     reads out of large test runs while still letting callers opt into their
     own defensive copies when they need to mutate fixture data.
     """
-    with (FIXTURES_DIR / name).open(encoding="utf-8") as fixture_file:
-        return json.load(fixture_file)
+    fixture_path = FIXTURES_DIR / name
+    try:
+        with fixture_path.open(encoding="utf-8") as fixture_file:
+            return json.load(fixture_file)
+    except FileNotFoundError as exc:
+        raise ValueError(f"Unknown fixture: {name}") from exc
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"Invalid JSON fixture: {name}") from exc
 
 
 def _http_error(status_code: int, url: str) -> requests.HTTPError:
@@ -43,17 +49,20 @@ def _http_error(status_code: int, url: str) -> requests.HTTPError:
 class FrozenMlbClient:
     """Mock MLB client backed by frozen fixture data."""
 
+    DEFAULT_FIXTURES = {
+        "schedule": "schedule_2025.json",
+        "boxscore": "boxscore_normal.json",
+        "content": "content_with_video.json",
+    }
+    DEFAULT_BEHAVIORS = {
+        "schedule": "success",
+        "boxscore": "success",
+        "content": "success",
+    }
+
     def __init__(self) -> None:
-        self._fixtures = {
-            "schedule": "schedule_2025.json",
-            "boxscore": "boxscore_normal.json",
-            "content": "content_with_video.json",
-        }
-        self._behaviors = {
-            "schedule": "success",
-            "boxscore": "success",
-            "content": "success",
-        }
+        self._fixtures = dict(self.DEFAULT_FIXTURES)
+        self._behaviors = dict(self.DEFAULT_BEHAVIORS)
 
     def set_behavior(
         self,

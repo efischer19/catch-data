@@ -45,20 +45,6 @@
     },
     "teams": {
       "away": {
-        "id": 147,
-        "name": "New York Yankees",
-        "link": "/api/v1/teams/147",
-        "abbreviation": "NYY",
-        "teamName": "Yankees",
-        "shortName": "NY Yankees",
-        "record": {
-          "gamesPlayed": 70,
-          "wins": 40,
-          "losses": 30,
-          "winningPercentage": ".571"
-        }
-      },
-      "home": {
         "id": 111,
         "name": "Boston Red Sox",
         "link": "/api/v1/teams/111",
@@ -66,10 +52,24 @@
         "teamName": "Red Sox",
         "shortName": "Boston",
         "record": {
-          "gamesPlayed": 70,
-          "wins": 35,
-          "losses": 35,
-          "winningPercentage": ".500"
+          "gamesPlayed": 13,
+          "wins": 8,
+          "losses": 5,
+          "winningPercentage": ".615"
+        }
+      },
+      "home": {
+        "id": 147,
+        "name": "New York Yankees",
+        "link": "/api/v1/teams/147",
+        "abbreviation": "NYY",
+        "teamName": "Yankees",
+        "shortName": "NY Yankees",
+        "record": {
+          "gamesPlayed": 13,
+          "wins": 7,
+          "losses": 6,
+          "winningPercentage": ".538"
         }
       }
     },
@@ -246,14 +246,14 @@
       ],
       "teams": {
         "home": {
-          "runs": 3,
-          "hits": 8,
+          "runs": 2,
+          "hits": 6,
           "errors": 1,
           "leftOnBase": 6
         },
         "away": {
-          "runs": 5,
-          "hits": 10,
+          "runs": 4,
+          "hits": 8,
           "errors": 0,
           "leftOnBase": 5
         }
@@ -263,19 +263,19 @@
       "teams": {
         "away": {
           "team": {
-            "id": 147,
-            "name": "New York Yankees",
-            "link": "/api/v1/teams/147"
+            "id": 111,
+            "name": "Boston Red Sox",
+            "link": "/api/v1/teams/111"
           },
           "teamStats": {
             "batting": {
-              "runs": 5,
-              "hits": 10,
+              "runs": 4,
+              "hits": 8,
               "homeRuns": 2
             },
             "pitching": {
               "strikeOuts": 8,
-              "earnedRuns": 3
+              "earnedRuns": 2
             }
           },
           "players": {
@@ -328,19 +328,19 @@
         },
         "home": {
           "team": {
-            "id": 111,
-            "name": "Boston Red Sox",
-            "link": "/api/v1/teams/111"
+            "id": 147,
+            "name": "New York Yankees",
+            "link": "/api/v1/teams/147"
           },
           "teamStats": {
             "batting": {
-              "runs": 3,
-              "hits": 8,
+              "runs": 2,
+              "hits": 6,
               "homeRuns": 1
             },
             "pitching": {
               "strikeOuts": 6,
-              "earnedRuns": 5
+              "earnedRuns": 4
             }
           },
           "players": {
