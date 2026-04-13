@@ -132,13 +132,13 @@
             "teams": {
               "home": {
                 "runs": 2,
-                "hits": 8,
+                "hits": 6,
                 "errors": 1,
                 "leftOnBase": 6
               },
               "away": {
                 "runs": 4,
-                "hits": 10,
+                "hits": 8,
                 "errors": 0,
                 "leftOnBase": 5
               }
@@ -768,14 +768,14 @@
               "home": {
                 "runs": 5,
                 "hits": 10,
-                "errors": 0,
-                "leftOnBase": 4
+                "errors": 1,
+                "leftOnBase": 6
               },
               "away": {
                 "runs": 6,
                 "hits": 12,
-                "errors": 1,
-                "leftOnBase": 7
+                "errors": 0,
+                "leftOnBase": 5
               }
             }
           }

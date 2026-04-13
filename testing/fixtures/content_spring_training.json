@@ -40,11 +40,11 @@
             "playbacks": [
               {
                 "name": "mp4Avc",
-                "url": "https://cuts.diamond.mlb.com/FORGE/2024/2024-06/15/751001/condensed_751001.mp4"
+                "url": "https://cuts.diamond.mlb.com/FORGE/2025/2025-03/12/751001/condensed_751001.mp4"
               },
               {
                 "name": "FLASH_2500K_1280X720",
-                "url": "https://cuts.diamond.mlb.com/FORGE/2024/2024-06/15/751001/flash_751001_2500k.mp4",
+                "url": "https://cuts.diamond.mlb.com/FORGE/2025/2025-03/12/751001/flash_751001_2500k.mp4",
                 "width": "1280",
                 "height": "720"
               }
@@ -79,11 +79,11 @@
           "playbacks": [
             {
               "name": "mp4Avc",
-              "url": "https://cuts.diamond.mlb.com/FORGE/2024/2024-06/15/751001/judge_hr.mp4"
+              "url": "https://cuts.diamond.mlb.com/FORGE/2025/2025-03/12/751001/judge_hr.mp4"
             },
             {
               "name": "FLASH_1200K_896X504",
-              "url": "https://cuts.diamond.mlb.com/FORGE/2024/2024-06/15/751001/judge_hr_1200k.mp4",
+              "url": "https://cuts.diamond.mlb.com/FORGE/2025/2025-03/12/751001/judge_hr_1200k.mp4",
               "width": "896",
               "height": "504"
             }
@@ -98,7 +98,7 @@
           "playbacks": [
             {
               "name": "mp4Avc",
-              "url": "https://cuts.diamond.mlb.com/FORGE/2024/2024-06/15/751001/devers_hr.mp4"
+              "url": "https://cuts.diamond.mlb.com/FORGE/2025/2025-03/12/751001/devers_hr.mp4"
             }
           ]
         }

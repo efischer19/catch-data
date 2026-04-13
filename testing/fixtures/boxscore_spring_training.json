@@ -74,9 +74,9 @@
       }
     },
     "venue": {
-      "id": 3,
-      "name": "Fenway Park",
-      "link": "/api/v1/venues/3"
+      "id": 2392,
+      "name": "George M. Steinbrenner Field",
+      "link": "/api/v1/venues/2392"
     },
     "players": {
       "ID660271": {
