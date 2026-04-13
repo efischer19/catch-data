@@ -1,0 +1,432 @@
+{
+  "copyright": "Copyright 2024 MLB Advanced Media, L.P.  Use of any content on this page acknowledges agreement to the terms posted here http://gdx.mlb.com/components/copyright.txt",
+  "gamePk": 752100,
+  "link": "/api/v1.1/game/752100/feed/live",
+  "metaData": {
+    "wait": 10,
+    "timeStamp": "20250720_201000",
+    "gameEvents": [
+      "strikeout",
+      "home_run"
+    ],
+    "logicalEvents": [
+      "midInning",
+      "countChange"
+    ]
+  },
+  "gameData": {
+    "game": {
+      "pk": 752100,
+      "type": "R",
+      "doubleHeader": "Y",
+      "id": "2025/07/20/seamlb-oakmlb-1",
+      "gamedayType": "P",
+      "tiebreaker": "N",
+      "gameNumber": 1,
+      "calendarEventID": "14-752100-2025-07-20",
+      "season": "2025",
+      "seasonDisplay": "2025"
+    },
+    "datetime": {
+      "dateTime": "2025-07-20T17:10:00Z",
+      "originalDate": "2025-07-20",
+      "officialDate": "2025-07-20",
+      "dayNight": "day",
+      "time": "2:10",
+      "ampm": "PM"
+    },
+    "status": {
+      "abstractGameState": "Final",
+      "codedGameState": "F",
+      "detailedState": "Final",
+      "statusCode": "F",
+      "startTimeTBD": false,
+      "abstractGameCode": "F"
+    },
+    "teams": {
+      "away": {
+        "id": 147,
+        "name": "New York Yankees",
+        "link": "/api/v1/teams/147",
+        "abbreviation": "NYY",
+        "teamName": "Yankees",
+        "shortName": "NY Yankees",
+        "record": {
+          "gamesPlayed": 70,
+          "wins": 40,
+          "losses": 30,
+          "winningPercentage": ".571"
+        }
+      },
+      "home": {
+        "id": 111,
+        "name": "Boston Red Sox",
+        "link": "/api/v1/teams/111",
+        "abbreviation": "BOS",
+        "teamName": "Red Sox",
+        "shortName": "Boston",
+        "record": {
+          "gamesPlayed": 70,
+          "wins": 35,
+          "losses": 35,
+          "winningPercentage": ".500"
+        }
+      }
+    },
+    "venue": {
+      "id": 3,
+      "name": "Fenway Park",
+      "link": "/api/v1/venues/3"
+    },
+    "players": {
+      "ID660271": {
+        "id": 660271,
+        "fullName": "Aaron Judge",
+        "link": "/api/v1/people/660271"
+      }
+    }
+  },
+  "liveData": {
+    "plays": {
+      "allPlays": [],
+      "currentPlay": {}
+    },
+    "linescore": {
+      "currentInning": 9,
+      "currentInningOrdinal": "9th",
+      "inningState": "Bottom",
+      "inningHalf": "Bottom",
+      "isTopInning": false,
+      "scheduledInnings": 9,
+      "innings": [
+        {
+          "num": 1,
+          "ordinalNum": "1st",
+          "home": {
+            "runs": 0,
+            "hits": 1,
+            "errors": 0,
+            "leftOnBase": 1
+          },
+          "away": {
+            "runs": 2,
+            "hits": 2,
+            "errors": 0,
+            "leftOnBase": 0
+          }
+        },
+        {
+          "num": 2,
+          "ordinalNum": "2nd",
+          "home": {
+            "runs": 1,
+            "hits": 1,
+            "errors": 0,
+            "leftOnBase": 0
+          },
+          "away": {
+            "runs": 0,
+            "hits": 0,
+            "errors": 0,
+            "leftOnBase": 0
+          }
+        },
+        {
+          "num": 3,
+          "ordinalNum": "3rd",
+          "home": {
+            "runs": 0,
+            "hits": 0,
+            "errors": 1,
+            "leftOnBase": 0
+          },
+          "away": {
+            "runs": 1,
+            "hits": 2,
+            "errors": 0,
+            "leftOnBase": 1
+          }
+        },
+        {
+          "num": 4,
+          "ordinalNum": "4th",
+          "home": {
+            "runs": 0,
+            "hits": 1,
+            "errors": 0,
+            "leftOnBase": 1
+          },
+          "away": {
+            "runs": 0,
+            "hits": 0,
+            "errors": 0,
+            "leftOnBase": 0
+          }
+        },
+        {
+          "num": 5,
+          "ordinalNum": "5th",
+          "home": {
+            "runs": 1,
+            "hits": 2,
+            "errors": 0,
+            "leftOnBase": 1
+          },
+          "away": {
+            "runs": 0,
+            "hits": 1,
+            "errors": 0,
+            "leftOnBase": 1
+          }
+        },
+        {
+          "num": 6,
+          "ordinalNum": "6th",
+          "home": {
+            "runs": 0,
+            "hits": 0,
+            "errors": 0,
+            "leftOnBase": 0
+          },
+          "away": {
+            "runs": 2,
+            "hits": 3,
+            "errors": 0,
+            "leftOnBase": 1
+          }
+        },
+        {
+          "num": 7,
+          "ordinalNum": "7th",
+          "home": {
+            "runs": 0,
+            "hits": 1,
+            "errors": 0,
+            "leftOnBase": 1
+          },
+          "away": {
+            "runs": 0,
+            "hits": 0,
+            "errors": 0,
+            "leftOnBase": 0
+          }
+        },
+        {
+          "num": 8,
+          "ordinalNum": "8th",
+          "home": {
+            "runs": 1,
+            "hits": 1,
+            "errors": 0,
+            "leftOnBase": 0
+          },
+          "away": {
+            "runs": 0,
+            "hits": 1,
+            "errors": 0,
+            "leftOnBase": 1
+          }
+        },
+        {
+          "num": 9,
+          "ordinalNum": "9th",
+          "home": {
+            "runs": 0,
+            "hits": 1,
+            "errors": 0,
+            "leftOnBase": 2
+          },
+          "away": {
+            "runs": 0,
+            "hits": 1,
+            "errors": 0,
+            "leftOnBase": 1
+          }
+        }
+      ],
+      "teams": {
+        "home": {
+          "runs": 3,
+          "hits": 8,
+          "errors": 1,
+          "leftOnBase": 6
+        },
+        "away": {
+          "runs": 5,
+          "hits": 10,
+          "errors": 0,
+          "leftOnBase": 5
+        }
+      }
+    },
+    "boxscore": {
+      "teams": {
+        "away": {
+          "team": {
+            "id": 147,
+            "name": "New York Yankees",
+            "link": "/api/v1/teams/147"
+          },
+          "teamStats": {
+            "batting": {
+              "runs": 5,
+              "hits": 10,
+              "homeRuns": 2
+            },
+            "pitching": {
+              "strikeOuts": 8,
+              "earnedRuns": 3
+            }
+          },
+          "players": {
+            "ID660271": {
+              "person": {
+                "id": 660271,
+                "fullName": "Aaron Judge"
+              },
+              "stats": {
+                "batting": {
+                  "hits": 2,
+                  "homeRuns": 1
+                }
+              }
+            }
+          },
+          "batters": [
+            660271,
+            592450,
+            543305
+          ],
+          "pitchers": [
+            543243,
+            592332
+          ],
+          "bench": [
+            608070
+          ],
+          "bullpen": [
+            592332,
+            657277
+          ],
+          "battingOrder": [
+            660271,
+            592450,
+            543305
+          ],
+          "info": [
+            {
+              "title": "BATTING",
+              "fieldList": [
+                {
+                  "label": "HR",
+                  "value": "Judge (30)"
+                }
+              ]
+            }
+          ],
+          "note": []
+        },
+        "home": {
+          "team": {
+            "id": 111,
+            "name": "Boston Red Sox",
+            "link": "/api/v1/teams/111"
+          },
+          "teamStats": {
+            "batting": {
+              "runs": 3,
+              "hits": 8,
+              "homeRuns": 1
+            },
+            "pitching": {
+              "strikeOuts": 6,
+              "earnedRuns": 5
+            }
+          },
+          "players": {
+            "ID646240": {
+              "person": {
+                "id": 646240,
+                "fullName": "Rafael Devers"
+              },
+              "stats": {
+                "batting": {
+                  "hits": 3,
+                  "homeRuns": 1
+                }
+              }
+            }
+          },
+          "batters": [
+            646240,
+            680776,
+            665742
+          ],
+          "pitchers": [
+            678394,
+            657006
+          ],
+          "bench": [
+            680557
+          ],
+          "bullpen": [
+            657006,
+            673357
+          ],
+          "battingOrder": [
+            646240,
+            680776,
+            665742
+          ],
+          "info": [
+            {
+              "title": "BATTING",
+              "fieldList": [
+                {
+                  "label": "HR",
+                  "value": "Devers (18)"
+                }
+              ]
+            }
+          ],
+          "note": []
+        }
+      },
+      "officials": [
+        {
+          "official": {
+            "id": 427542,
+            "name": "Angel Hernandez",
+            "link": "/api/v1/people/427542"
+          },
+          "officialType": "Home Plate"
+        },
+        {
+          "official": {
+            "id": 484212,
+            "name": "Joe West",
+            "link": "/api/v1/people/484212"
+          },
+          "officialType": "First Base"
+        }
+      ]
+    },
+    "decisions": {
+      "winner": {
+        "id": 543243,
+        "fullName": "Gerrit Cole",
+        "link": "/api/v1/people/543243"
+      },
+      "loser": {
+        "id": 678394,
+        "fullName": "Brayan Bello",
+        "link": "/api/v1/people/678394"
+      },
+      "save": {
+        "id": 592332,
+        "fullName": "Clay Holmes",
+        "link": "/api/v1/people/592332"
+      }
+    }
+  }
+}

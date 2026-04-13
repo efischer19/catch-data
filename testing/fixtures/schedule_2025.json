@@ -1,0 +1,777 @@
+{
+  "copyright": "Copyright 2024 MLB Advanced Media, L.P.  Use of any content on this page acknowledges agreement to the terms posted here http://gdx.mlb.com/components/copyright.txt",
+  "totalItems": 6,
+  "totalEvents": 0,
+  "totalGames": 6,
+  "totalGamesInProgress": 0,
+  "dates": [
+    {
+      "date": "2025-03-12",
+      "totalItems": 1,
+      "totalEvents": 0,
+      "totalGames": 1,
+      "totalGamesInProgress": 0,
+      "games": [
+        {
+          "gamePk": 751001,
+          "gameGuid": "00751001-aaaa-bbbb-cccc-000000751001",
+          "link": "/api/v1.1/game/751001/feed/live",
+          "gameType": "S",
+          "season": "2025",
+          "gameDate": "2025-03-12T18:05:00Z",
+          "officialDate": "2025-03-12",
+          "status": {
+            "abstractGameState": "Final",
+            "codedGameState": "F",
+            "detailedState": "Final",
+            "statusCode": "F",
+            "startTimeTBD": false,
+            "abstractGameCode": "F"
+          },
+          "teams": {
+            "away": {
+              "leagueRecord": {
+                "wins": 8,
+                "losses": 5,
+                "pct": ".615"
+              },
+              "score": 4,
+              "team": {
+                "id": 111,
+                "name": "Boston Red Sox",
+                "link": "/api/v1/teams/111"
+              },
+              "isWinner": true,
+              "splitSquad": false,
+              "seriesNumber": 30
+            },
+            "home": {
+              "leagueRecord": {
+                "wins": 7,
+                "losses": 6,
+                "pct": ".538"
+              },
+              "score": 2,
+              "team": {
+                "id": 147,
+                "name": "New York Yankees",
+                "link": "/api/v1/teams/147"
+              },
+              "isWinner": false,
+              "splitSquad": false,
+              "seriesNumber": 30
+            }
+          },
+          "venue": {
+            "id": 2392,
+            "name": "George M. Steinbrenner Field",
+            "link": "/api/v1/venues/2392"
+          },
+          "content": {
+            "link": "/api/v1/game/751001/content"
+          },
+          "isTie": false,
+          "gameNumber": 1,
+          "publicFacing": true,
+          "doubleHeader": "N",
+          "gamedayType": "P",
+          "tiebreaker": "N",
+          "calendarEventID": "14-751001-2025-03-12",
+          "seasonDisplay": "2025",
+          "dayNight": "day",
+          "scheduledInnings": 9,
+          "reverseHomeAwayStatus": false,
+          "inningBreakLength": 120,
+          "gamesInSeries": 3,
+          "seriesGameNumber": 1,
+          "seriesDescription": "Spring Training",
+          "recordSource": "S",
+          "ifNecessary": "N",
+          "ifNecessaryDescription": "Normal Game",
+          "linescore": {
+            "currentInning": 9,
+            "currentInningOrdinal": "9th",
+            "inningState": "Bottom",
+            "inningHalf": "Bottom",
+            "isTopInning": false,
+            "scheduledInnings": 9,
+            "innings": [
+              {
+                "num": 1,
+                "ordinalNum": "1st",
+                "home": {
+                  "runs": 0,
+                  "hits": 1,
+                  "errors": 0,
+                  "leftOnBase": 1
+                },
+                "away": {
+                  "runs": 2,
+                  "hits": 2,
+                  "errors": 0,
+                  "leftOnBase": 0
+                }
+              },
+              {
+                "num": 2,
+                "ordinalNum": "2nd",
+                "home": {
+                  "runs": 1,
+                  "hits": 1,
+                  "errors": 0,
+                  "leftOnBase": 0
+                },
+                "away": {
+                  "runs": 0,
+                  "hits": 0,
+                  "errors": 0,
+                  "leftOnBase": 0
+                }
+              }
+            ],
+            "teams": {
+              "home": {
+                "runs": 2,
+                "hits": 8,
+                "errors": 1,
+                "leftOnBase": 6
+              },
+              "away": {
+                "runs": 4,
+                "hits": 10,
+                "errors": 0,
+                "leftOnBase": 5
+              }
+            }
+          }
+        }
+      ],
+      "events": []
+    },
+    {
+      "date": "2025-07-20",
+      "totalItems": 3,
+      "totalEvents": 0,
+      "totalGames": 3,
+      "totalGamesInProgress": 0,
+      "games": [
+        {
+          "gamePk": 752100,
+          "gameGuid": "00752100-aaaa-bbbb-cccc-000000752100",
+          "link": "/api/v1.1/game/752100/feed/live",
+          "gameType": "R",
+          "season": "2025",
+          "gameDate": "2025-07-20T17:10:00Z",
+          "officialDate": "2025-07-20",
+          "status": {
+            "abstractGameState": "Final",
+            "codedGameState": "F",
+            "detailedState": "Final",
+            "statusCode": "F",
+            "startTimeTBD": false,
+            "abstractGameCode": "F"
+          },
+          "teams": {
+            "away": {
+              "leagueRecord": {
+                "wins": 55,
+                "losses": 40,
+                "pct": ".579"
+              },
+              "score": 4,
+              "team": {
+                "id": 136,
+                "name": "Seattle Mariners",
+                "link": "/api/v1/teams/136"
+              },
+              "isWinner": true,
+              "splitSquad": false,
+              "seriesNumber": 35
+            },
+            "home": {
+              "leagueRecord": {
+                "wins": 50,
+                "losses": 45,
+                "pct": ".526"
+              },
+              "score": 2,
+              "team": {
+                "id": 133,
+                "name": "Oakland Athletics",
+                "link": "/api/v1/teams/133"
+              },
+              "isWinner": false,
+              "splitSquad": false,
+              "seriesNumber": 35
+            }
+          },
+          "venue": {
+            "id": 10,
+            "name": "Oakland Coliseum",
+            "link": "/api/v1/venues/10"
+          },
+          "content": {
+            "link": "/api/v1/game/752100/content"
+          },
+          "isTie": false,
+          "gameNumber": 1,
+          "publicFacing": true,
+          "doubleHeader": "Y",
+          "gamedayType": "P",
+          "tiebreaker": "N",
+          "calendarEventID": "14-752100-2025-07-20",
+          "seasonDisplay": "2025",
+          "dayNight": "day",
+          "scheduledInnings": 9,
+          "reverseHomeAwayStatus": false,
+          "inningBreakLength": 120,
+          "gamesInSeries": 4,
+          "seriesGameNumber": 2,
+          "seriesDescription": "Regular Season",
+          "recordSource": "S",
+          "ifNecessary": "N",
+          "ifNecessaryDescription": "Normal Game",
+          "linescore": {
+            "currentInning": 9,
+            "currentInningOrdinal": "9th",
+            "inningState": "Bottom",
+            "inningHalf": "Bottom",
+            "isTopInning": false,
+            "scheduledInnings": 9,
+            "innings": [
+              {
+                "num": 1,
+                "ordinalNum": "1st",
+                "home": {
+                  "runs": 0,
+                  "hits": 0,
+                  "errors": 0,
+                  "leftOnBase": 0
+                },
+                "away": {
+                  "runs": 1,
+                  "hits": 2,
+                  "errors": 0,
+                  "leftOnBase": 1
+                }
+              }
+            ],
+            "teams": {
+              "home": {
+                "runs": 2,
+                "hits": 6,
+                "errors": 0,
+                "leftOnBase": 5
+              },
+              "away": {
+                "runs": 4,
+                "hits": 9,
+                "errors": 0,
+                "leftOnBase": 4
+              }
+            }
+          }
+        },
+        {
+          "gamePk": 752101,
+          "gameGuid": "00752101-aaaa-bbbb-cccc-000000752101",
+          "link": "/api/v1.1/game/752101/feed/live",
+          "gameType": "R",
+          "season": "2025",
+          "gameDate": "2025-07-20T22:10:00Z",
+          "officialDate": "2025-07-20",
+          "status": {
+            "abstractGameState": "Final",
+            "codedGameState": "F",
+            "detailedState": "Final",
+            "statusCode": "F",
+            "startTimeTBD": false,
+            "abstractGameCode": "F"
+          },
+          "teams": {
+            "away": {
+              "leagueRecord": {
+                "wins": 55,
+                "losses": 40,
+                "pct": ".579"
+              },
+              "score": 1,
+              "team": {
+                "id": 136,
+                "name": "Seattle Mariners",
+                "link": "/api/v1/teams/136"
+              },
+              "isWinner": false,
+              "splitSquad": false,
+              "seriesNumber": 35
+            },
+            "home": {
+              "leagueRecord": {
+                "wins": 51,
+                "losses": 45,
+                "pct": ".531"
+              },
+              "score": 6,
+              "team": {
+                "id": 133,
+                "name": "Oakland Athletics",
+                "link": "/api/v1/teams/133"
+              },
+              "isWinner": true,
+              "splitSquad": false,
+              "seriesNumber": 35
+            }
+          },
+          "venue": {
+            "id": 10,
+            "name": "Oakland Coliseum",
+            "link": "/api/v1/venues/10"
+          },
+          "content": {
+            "link": "/api/v1/game/752101/content"
+          },
+          "isTie": false,
+          "gameNumber": 2,
+          "publicFacing": true,
+          "doubleHeader": "Y",
+          "gamedayType": "P",
+          "tiebreaker": "N",
+          "calendarEventID": "14-752101-2025-07-20",
+          "seasonDisplay": "2025",
+          "dayNight": "night",
+          "scheduledInnings": 9,
+          "reverseHomeAwayStatus": false,
+          "inningBreakLength": 120,
+          "gamesInSeries": 4,
+          "seriesGameNumber": 3,
+          "seriesDescription": "Regular Season",
+          "recordSource": "S",
+          "ifNecessary": "N",
+          "ifNecessaryDescription": "Normal Game",
+          "linescore": {
+            "currentInning": 9,
+            "currentInningOrdinal": "9th",
+            "inningState": "Bottom",
+            "inningHalf": "Bottom",
+            "isTopInning": false,
+            "scheduledInnings": 9,
+            "innings": [
+              {
+                "num": 1,
+                "ordinalNum": "1st",
+                "home": {
+                  "runs": 3,
+                  "hits": 2,
+                  "errors": 0,
+                  "leftOnBase": 0
+                },
+                "away": {
+                  "runs": 0,
+                  "hits": 1,
+                  "errors": 0,
+                  "leftOnBase": 1
+                }
+              }
+            ],
+            "teams": {
+              "home": {
+                "runs": 6,
+                "hits": 10,
+                "errors": 0,
+                "leftOnBase": 3
+              },
+              "away": {
+                "runs": 1,
+                "hits": 4,
+                "errors": 1,
+                "leftOnBase": 6
+              }
+            }
+          }
+        },
+        {
+          "gamePk": 752200,
+          "gameGuid": "00752200-aaaa-bbbb-cccc-000000752200",
+          "link": "/api/v1.1/game/752200/feed/live",
+          "gameType": "R",
+          "season": "2025",
+          "gameDate": "2025-07-20T20:05:00Z",
+          "officialDate": "2025-07-20",
+          "status": {
+            "abstractGameState": "Final",
+            "codedGameState": "D",
+            "detailedState": "Postponed",
+            "statusCode": "DI",
+            "startTimeTBD": false,
+            "abstractGameCode": "F",
+            "reason": "Rain"
+          },
+          "teams": {
+            "away": {
+              "leagueRecord": {
+                "wins": 48,
+                "losses": 47,
+                "pct": ".505"
+              },
+              "team": {
+                "id": 144,
+                "name": "Atlanta Braves",
+                "link": "/api/v1/teams/144"
+              },
+              "splitSquad": false,
+              "seriesNumber": 35
+            },
+            "home": {
+              "leagueRecord": {
+                "wins": 52,
+                "losses": 43,
+                "pct": ".547"
+              },
+              "team": {
+                "id": 121,
+                "name": "New York Mets",
+                "link": "/api/v1/teams/121"
+              },
+              "splitSquad": false,
+              "seriesNumber": 35
+            }
+          },
+          "venue": {
+            "id": 3289,
+            "name": "Citi Field",
+            "link": "/api/v1/venues/3289"
+          },
+          "content": {
+            "link": "/api/v1/game/752200/content"
+          },
+          "gameNumber": 1,
+          "publicFacing": true,
+          "doubleHeader": "N",
+          "gamedayType": "P",
+          "tiebreaker": "N",
+          "calendarEventID": "14-752200-2025-07-20",
+          "seasonDisplay": "2025",
+          "dayNight": "night",
+          "description": "Postponed due to rain",
+          "scheduledInnings": 9,
+          "reverseHomeAwayStatus": false,
+          "gamesInSeries": 3,
+          "seriesGameNumber": 2,
+          "seriesDescription": "Regular Season",
+          "recordSource": "S",
+          "ifNecessary": "N",
+          "ifNecessaryDescription": "Normal Game"
+        }
+      ],
+      "events": []
+    },
+    {
+      "date": "2025-09-18",
+      "totalItems": 2,
+      "totalEvents": 0,
+      "totalGames": 2,
+      "totalGamesInProgress": 0,
+      "games": [
+        {
+          "gamePk": 752400,
+          "gameGuid": "00752400-aaaa-bbbb-cccc-000000752400",
+          "link": "/api/v1.1/game/752400/feed/live",
+          "gameType": "R",
+          "season": "2025",
+          "gameDate": "2025-06-15T18:10:00Z",
+          "officialDate": "2025-06-15",
+          "status": {
+            "abstractGameState": "Final",
+            "codedGameState": "F",
+            "detailedState": "Final",
+            "statusCode": "F",
+            "startTimeTBD": false,
+            "abstractGameCode": "F"
+          },
+          "teams": {
+            "away": {
+              "leagueRecord": {
+                "wins": 40,
+                "losses": 30,
+                "pct": ".571"
+              },
+              "score": 5,
+              "team": {
+                "id": 147,
+                "name": "New York Yankees",
+                "link": "/api/v1/teams/147"
+              },
+              "isWinner": true,
+              "splitSquad": false,
+              "seriesNumber": 30
+            },
+            "home": {
+              "leagueRecord": {
+                "wins": 35,
+                "losses": 35,
+                "pct": ".500"
+              },
+              "score": 3,
+              "team": {
+                "id": 111,
+                "name": "Boston Red Sox",
+                "link": "/api/v1/teams/111"
+              },
+              "isWinner": false,
+              "splitSquad": false,
+              "seriesNumber": 30
+            }
+          },
+          "venue": {
+            "id": 3,
+            "name": "Fenway Park",
+            "link": "/api/v1/venues/3"
+          },
+          "content": {
+            "link": "/api/v1/game/752400/content"
+          },
+          "isTie": false,
+          "gameNumber": 1,
+          "publicFacing": true,
+          "doubleHeader": "N",
+          "gamedayType": "P",
+          "tiebreaker": "N",
+          "calendarEventID": "14-752400-2025-06-15",
+          "seasonDisplay": "2025",
+          "dayNight": "day",
+          "scheduledInnings": 9,
+          "reverseHomeAwayStatus": false,
+          "inningBreakLength": 120,
+          "gamesInSeries": 3,
+          "seriesGameNumber": 1,
+          "seriesDescription": "Regular Season",
+          "recordSource": "S",
+          "ifNecessary": "N",
+          "ifNecessaryDescription": "Normal Game",
+          "linescore": {
+            "currentInning": 9,
+            "currentInningOrdinal": "9th",
+            "inningState": "Bottom",
+            "inningHalf": "Bottom",
+            "isTopInning": false,
+            "scheduledInnings": 9,
+            "innings": [
+              {
+                "num": 1,
+                "ordinalNum": "1st",
+                "home": {
+                  "runs": 0,
+                  "hits": 1,
+                  "errors": 0,
+                  "leftOnBase": 1
+                },
+                "away": {
+                  "runs": 2,
+                  "hits": 2,
+                  "errors": 0,
+                  "leftOnBase": 0
+                }
+              },
+              {
+                "num": 2,
+                "ordinalNum": "2nd",
+                "home": {
+                  "runs": 1,
+                  "hits": 1,
+                  "errors": 0,
+                  "leftOnBase": 0
+                },
+                "away": {
+                  "runs": 0,
+                  "hits": 0,
+                  "errors": 0,
+                  "leftOnBase": 0
+                }
+              }
+            ],
+            "teams": {
+              "home": {
+                "runs": 3,
+                "hits": 8,
+                "errors": 1,
+                "leftOnBase": 6
+              },
+              "away": {
+                "runs": 5,
+                "hits": 10,
+                "errors": 0,
+                "leftOnBase": 5
+              }
+            }
+          }
+        },
+        {
+          "gamePk": 752300,
+          "gameGuid": "00752300-aaaa-bbbb-cccc-000000752300",
+          "link": "/api/v1.1/game/752300/feed/live",
+          "gameType": "R",
+          "season": "2025",
+          "gameDate": "2025-09-18T23:10:00Z",
+          "officialDate": "2025-09-18",
+          "status": {
+            "abstractGameState": "Final",
+            "codedGameState": "F",
+            "detailedState": "Final",
+            "statusCode": "F",
+            "startTimeTBD": false,
+            "abstractGameCode": "F"
+          },
+          "teams": {
+            "away": {
+              "leagueRecord": {
+                "wins": 44,
+                "losses": 25,
+                "pct": ".638"
+              },
+              "score": 6,
+              "team": {
+                "id": 119,
+                "name": "Los Angeles Dodgers",
+                "link": "/api/v1/teams/119"
+              },
+              "isWinner": false,
+              "splitSquad": false,
+              "seriesNumber": 31
+            },
+            "home": {
+              "leagueRecord": {
+                "wins": 38,
+                "losses": 31,
+                "pct": ".551"
+              },
+              "score": 5,
+              "team": {
+                "id": 137,
+                "name": "San Francisco Giants",
+                "link": "/api/v1/teams/137"
+              },
+              "isWinner": true,
+              "splitSquad": false,
+              "seriesNumber": 31
+            }
+          },
+          "venue": {
+            "id": 2395,
+            "name": "Oracle Park",
+            "link": "/api/v1/venues/2395"
+          },
+          "content": {
+            "link": "/api/v1/game/752300/content"
+          },
+          "isTie": false,
+          "gameNumber": 1,
+          "publicFacing": true,
+          "doubleHeader": "N",
+          "gamedayType": "P",
+          "tiebreaker": "N",
+          "calendarEventID": "14-752300-2025-09-18",
+          "seasonDisplay": "2025",
+          "dayNight": "night",
+          "scheduledInnings": 9,
+          "reverseHomeAwayStatus": false,
+          "inningBreakLength": 120,
+          "gamesInSeries": 3,
+          "seriesGameNumber": 2,
+          "seriesDescription": "Regular Season",
+          "recordSource": "S",
+          "ifNecessary": "N",
+          "ifNecessaryDescription": "Normal Game",
+          "linescore": {
+            "currentInning": 12,
+            "currentInningOrdinal": "12th",
+            "inningState": "Bottom",
+            "inningHalf": "Bottom",
+            "isTopInning": false,
+            "scheduledInnings": 9,
+            "innings": [
+              {
+                "num": 1,
+                "ordinalNum": "1st",
+                "home": {
+                  "runs": 3,
+                  "hits": 3,
+                  "errors": 0,
+                  "leftOnBase": 1
+                },
+                "away": {
+                  "runs": 0,
+                  "hits": 0,
+                  "errors": 1,
+                  "leftOnBase": 0
+                }
+              },
+              {
+                "num": 10,
+                "ordinalNum": "10th",
+                "home": {
+                  "runs": 0,
+                  "hits": 1,
+                  "errors": 0,
+                  "leftOnBase": 1
+                },
+                "away": {
+                  "runs": 0,
+                  "hits": 0,
+                  "errors": 0,
+                  "leftOnBase": 1
+                }
+              },
+              {
+                "num": 11,
+                "ordinalNum": "11th",
+                "home": {
+                  "runs": 0,
+                  "hits": 0,
+                  "errors": 0,
+                  "leftOnBase": 0
+                },
+                "away": {
+                  "runs": 0,
+                  "hits": 1,
+                  "errors": 0,
+                  "leftOnBase": 1
+                }
+              },
+              {
+                "num": 12,
+                "ordinalNum": "12th",
+                "home": {
+                  "runs": 0,
+                  "hits": 1,
+                  "errors": 0,
+                  "leftOnBase": 1
+                },
+                "away": {
+                  "runs": 1,
+                  "hits": 2,
+                  "errors": 0,
+                  "leftOnBase": 1
+                }
+              }
+            ],
+            "teams": {
+              "home": {
+                "runs": 5,
+                "hits": 12,
+                "errors": 0,
+                "leftOnBase": 4
+              },
+              "away": {
+                "runs": 6,
+                "hits": 5,
+                "errors": 1,
+                "leftOnBase": 7
+              }
+            }
+          }
+        }
+      ],
+      "events": []
+    }
+  ]
+}

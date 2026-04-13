@@ -27,3 +27,8 @@ def test_write_to_s3_returns_count():
     records = [{"id": "1"}, {"id": "2"}]
     count = write_to_s3(records, "bronze/test/2026-01-15/")
     assert count == 2
+
+
+def test_shared_schedule_fixture_is_available(sample_schedule):
+    """Verify shared schedule fixtures can be reused from the testing dir."""
+    assert sample_schedule["totalGames"] >= 5
