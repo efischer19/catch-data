@@ -36,8 +36,8 @@ def test_gold_upcoming_games_key():
     assert CatchPaths.gold_upcoming_games_key() == "gold/upcoming_games.json"
 
 
-def test_generated_keys_do_not_start_with_or_contain_double_slashes():
-    """Verify generated keys remain flat, deterministic object keys."""
+def test_generated_keys_are_well_formed():
+    """Verify generated keys remain flat object keys without slash issues."""
     keys = [
         CatchPaths.bronze_schedule_key(2025),
         CatchPaths.bronze_boxscore_key(745678),
@@ -47,13 +47,5 @@ def test_generated_keys_do_not_start_with_or_contain_double_slashes():
         CatchPaths.gold_upcoming_games_key(),
     ]
 
-    assert keys == [
-        "bronze/schedule_2025.json",
-        "bronze/boxscore_745678.json",
-        "bronze/content_745678.json",
-        "silver/master_schedule_2025.json",
-        "gold/team_147.json",
-        "gold/upcoming_games.json",
-    ]
     assert all(not key.startswith("/") for key in keys)
     assert all("//" not in key for key in keys)
