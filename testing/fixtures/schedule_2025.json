@@ -317,41 +317,41 @@
           "teams": {
             "away": {
               "leagueRecord": {
-                "wins": 55,
-                "losses": 40,
-                "pct": ".579"
+                "wins": 40,
+                "losses": 30,
+                "pct": ".571"
               },
-              "score": 4,
               "team": {
-                "id": 136,
-                "name": "Seattle Mariners",
-                "link": "/api/v1/teams/136"
+                "id": 147,
+                "name": "New York Yankees",
+                "link": "/api/v1/teams/147"
               },
-              "isWinner": true,
               "splitSquad": false,
-              "seriesNumber": 35
+              "seriesNumber": 35,
+              "score": 5,
+              "isWinner": true
             },
             "home": {
               "leagueRecord": {
-                "wins": 50,
-                "losses": 45,
-                "pct": ".526"
+                "wins": 35,
+                "losses": 35,
+                "pct": ".500"
               },
-              "score": 2,
               "team": {
-                "id": 133,
-                "name": "Oakland Athletics",
-                "link": "/api/v1/teams/133"
+                "id": 111,
+                "name": "Boston Red Sox",
+                "link": "/api/v1/teams/111"
               },
-              "isWinner": false,
               "splitSquad": false,
-              "seriesNumber": 35
+              "seriesNumber": 35,
+              "score": 3,
+              "isWinner": false
             }
           },
           "venue": {
-            "id": 10,
-            "name": "Oakland Coliseum",
-            "link": "/api/v1/venues/10"
+            "id": 3,
+            "name": "Fenway Park",
+            "link": "/api/v1/venues/3"
           },
           "content": {
             "link": "/api/v1/game/752100/content"
@@ -401,14 +401,14 @@
             ],
             "teams": {
               "home": {
-                "runs": 2,
-                "hits": 6,
+                "runs": 3,
+                "hits": 8,
                 "errors": 0,
                 "leftOnBase": 5
               },
               "away": {
-                "runs": 4,
-                "hits": 9,
+                "runs": 5,
+                "hits": 10,
                 "errors": 0,
                 "leftOnBase": 4
               }
@@ -434,41 +434,41 @@
           "teams": {
             "away": {
               "leagueRecord": {
-                "wins": 55,
-                "losses": 40,
-                "pct": ".579"
+                "wins": 40,
+                "losses": 30,
+                "pct": ".571"
               },
-              "score": 1,
               "team": {
-                "id": 136,
-                "name": "Seattle Mariners",
-                "link": "/api/v1/teams/136"
+                "id": 147,
+                "name": "New York Yankees",
+                "link": "/api/v1/teams/147"
               },
-              "isWinner": false,
               "splitSquad": false,
-              "seriesNumber": 35
+              "seriesNumber": 35,
+              "score": 1,
+              "isWinner": false
             },
             "home": {
               "leagueRecord": {
-                "wins": 51,
-                "losses": 45,
-                "pct": ".531"
+                "wins": 35,
+                "losses": 35,
+                "pct": ".500"
               },
-              "score": 6,
               "team": {
-                "id": 133,
-                "name": "Oakland Athletics",
-                "link": "/api/v1/teams/133"
+                "id": 111,
+                "name": "Boston Red Sox",
+                "link": "/api/v1/teams/111"
               },
-              "isWinner": true,
               "splitSquad": false,
-              "seriesNumber": 35
+              "seriesNumber": 35,
+              "score": 6,
+              "isWinner": true
             }
           },
           "venue": {
-            "id": 10,
-            "name": "Oakland Coliseum",
-            "link": "/api/v1/venues/10"
+            "id": 3,
+            "name": "Fenway Park",
+            "link": "/api/v1/venues/3"
           },
           "content": {
             "link": "/api/v1/game/752101/content"
@@ -634,41 +634,41 @@
           "teams": {
             "away": {
               "leagueRecord": {
-                "wins": 44,
-                "losses": 25,
-                "pct": ".638"
+                "wins": 83,
+                "losses": 67,
+                "pct": ".553"
               },
-              "score": 6,
               "team": {
-                "id": 119,
-                "name": "Los Angeles Dodgers",
-                "link": "/api/v1/teams/119"
+                "id": 147,
+                "name": "New York Yankees",
+                "link": "/api/v1/teams/147"
               },
-              "isWinner": false,
               "splitSquad": false,
-              "seriesNumber": 31
+              "seriesNumber": 35,
+              "score": 6,
+              "isWinner": true
             },
             "home": {
               "leagueRecord": {
-                "wins": 38,
-                "losses": 31,
-                "pct": ".551"
+                "wins": 79,
+                "losses": 71,
+                "pct": ".527"
               },
-              "score": 5,
               "team": {
-                "id": 137,
-                "name": "San Francisco Giants",
-                "link": "/api/v1/teams/137"
+                "id": 111,
+                "name": "Boston Red Sox",
+                "link": "/api/v1/teams/111"
               },
-              "isWinner": true,
               "splitSquad": false,
-              "seriesNumber": 31
+              "seriesNumber": 35,
+              "score": 5,
+              "isWinner": false
             }
           },
           "venue": {
-            "id": 2395,
-            "name": "Oracle Park",
-            "link": "/api/v1/venues/2395"
+            "id": 3,
+            "name": "Fenway Park",
+            "link": "/api/v1/venues/3"
           },
           "content": {
             "link": "/api/v1/game/752300/content"
@@ -767,13 +767,13 @@
             "teams": {
               "home": {
                 "runs": 5,
-                "hits": 12,
+                "hits": 10,
                 "errors": 0,
                 "leftOnBase": 4
               },
               "away": {
                 "runs": 6,
-                "hits": 5,
+                "hits": 12,
                 "errors": 1,
                 "leftOnBase": 7
               }

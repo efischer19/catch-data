@@ -10,7 +10,7 @@
           "headline": "Spring Training recap",
           "subhead": "Judge goes 2-for-4 with a home run",
           "seoTitle": "spring-training-recap",
-          "body": "Aaron Judge hit a two-run homer to lead the Yankees over the Red Sox at Fenway Park."
+          "body": "Aaron Judge hit a two-run homer to lead the Yankees over the Red Sox at George M. Steinbrenner Field."
         }
       ]
     },
@@ -26,7 +26,7 @@
         "items": [
           {
             "type": "video",
-            "title": "Spring Training NYY @ BOS"
+            "title": "Spring Training BOS @ NYY"
           }
         ]
       },
@@ -35,8 +35,8 @@
         "items": [
           {
             "type": "video",
-            "title": "Spring Training CG: NYY @ BOS",
-            "description": "Condensed Game: NYY @ BOS 6/15/24",
+            "title": "Spring Training CG: BOS @ NYY",
+            "description": "Condensed Game: NYY @ BOS 3/12/25",
             "playbacks": [
               {
                 "name": "mp4Avc",

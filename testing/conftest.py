@@ -14,8 +14,8 @@ from moto import mock_aws
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 TEST_BUCKET = "catch-data-test-bucket"
 HTTP_REASONS = {
-    404: "not found",
-    500: "internal server error",
+    404: "Not Found",
+    500: "Internal Server Error",
 }
 
 
