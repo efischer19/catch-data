@@ -17,9 +17,6 @@
 # -----------------------------------------------------------------------------
 locals {
   data_bucket_name = "catch-data-${var.environment}"
-  cors_allowed_origins = length(var.cors_allowed_origins) > 0 ? var.cors_allowed_origins : [
-    "https://catch-app.${var.environment}.example.com"
-  ]
 }
 
 resource "aws_s3_bucket" "data" {
@@ -97,11 +94,14 @@ resource "aws_s3_bucket_lifecycle_configuration" "data" {
 }
 
 resource "aws_s3_bucket_cors_configuration" "data" {
+  count  = length(var.cors_allowed_origins) > 0 ? 1 : 0
   bucket = aws_s3_bucket.data.id
 
   cors_rule {
+    allowed_headers = []
     allowed_methods = ["GET"]
-    allowed_origins = local.cors_allowed_origins
+    allowed_origins = var.cors_allowed_origins
+    expose_headers  = ["ETag"]
     max_age_seconds = 3000
   }
 }

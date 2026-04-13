@@ -62,12 +62,12 @@ Key bucket settings:
   `STANDARD_IA` after 90 days.
 * Lifecycle transitions move `bronze/` objects to `DEEP_ARCHIVE` after
   365 days.
-* A narrow CORS policy allows `GET` requests only from the configured
-  frontend origin list in `var.cors_allowed_origins`.
+* When `var.cors_allowed_origins` is set, a narrow CORS policy allows
+  `GET` requests only from that explicit frontend origin list and exposes
+  the `ETag` header for cache-aware clients.
 
-If `cors_allowed_origins` is not explicitly set, Terraform defaults to the
-placeholder origin `https://catch-app.{environment}.example.com`. Override this
-per environment before applying.
+Set `cors_allowed_origins` explicitly per environment before applying if the
+frontend needs direct browser access to S3-hosted objects.
 
 S3 event notifications are intentionally not configured yet; they will be added
 once the downstream Lambda functions exist.
