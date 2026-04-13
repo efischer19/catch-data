@@ -4,12 +4,14 @@
 
 ## Purpose
 
-This application demonstrates the **Silver** (processing) stage of the
+This application implements the **Silver** (processing) stage of the
 [medallion architecture](../../meta/adr/ADR-018-medallion_architecture.md).
-It reads raw bronze data from S3, validates and transforms each record using
-Pydantic models, and writes the cleaned output to S3.
+It rebuilds a season-level `silver/master_schedule_{year}.json` file by reading
+Bronze schedule, boxscore, and content JSON objects from S3, flattening the MLB
+API payloads, and validating the joined output with shared Pydantic models.
 
-**Data flow:** S3 `bronze/{source}/{date}/` → Validate & Transform → S3 `silver/{entity}/{date}/`
+**Data flow:** S3 `bronze/schedule_{year}.json` + per-game Bronze enrichments →
+Validate & Transform → S3 `silver/master_schedule_{year}.json`
 
 ## Installation
 
@@ -21,19 +23,15 @@ poetry install
 ## Usage
 
 ```bash
-# Run the processing pipeline
+# Rebuild the Silver master schedule for one season
 poetry run catch-processing process \
-    --source api-source \
-    --entity users \
-    --date 2026-01-15
+    --year 2026 \
+    --bucket catch-data-data-dev
 ```
 
-## Customization
-
-1. Replace `read_from_s3()` in `app/main.py` with real `boto3` S3 reads
-2. Implement domain-specific logic in `transform_record()`
-3. Update `SilverEntity` in `libs/catch-models/` with your validated fields
-4. Replace `write_to_s3()` with real `boto3` calls
+The deployed entry point is the `lambda_handler` function in `app/main.py`,
+which consumes S3 event notifications and derives the target season from the
+uploaded Bronze schedule key.
 
 ## Development
 
