@@ -13,11 +13,20 @@ from moto import mock_aws
 
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 TEST_BUCKET = "catch-data-test-bucket"
+HTTP_REASONS = {
+    404: "not found",
+    500: "internal server error",
+}
 
 
 @cache
 def load_fixture(name: str) -> dict:
-    """Load a frozen JSON fixture once and return it as a Python dict."""
+    """Load a frozen JSON fixture once per Python process.
+
+    Shared test fixtures are session-scoped, so caching keeps repeated file
+    reads out of large test runs while still letting callers opt into their
+    own defensive copies when they need to mutate fixture data.
+    """
     with (FIXTURES_DIR / name).open(encoding="utf-8") as fixture_file:
         return json.load(fixture_file)
 
@@ -27,7 +36,7 @@ def _http_error(status_code: int, url: str) -> requests.HTTPError:
     response = requests.Response()
     response.status_code = status_code
     response.url = url
-    response.reason = requests.status_codes._codes.get(status_code, ["error"])[0]
+    response.reason = HTTP_REASONS.get(status_code, "error")
     return requests.HTTPError(response=response)
 
 
@@ -87,19 +96,19 @@ class FrozenMlbClient:
 @pytest.fixture(scope="session")
 def sample_schedule() -> dict:
     """Load the default shared schedule fixture once per test session."""
-    return copy.deepcopy(load_fixture("schedule_2025.json"))
+    return load_fixture("schedule_2025.json")
 
 
 @pytest.fixture(scope="session")
 def sample_boxscore() -> dict:
     """Load the default shared boxscore fixture once per test session."""
-    return copy.deepcopy(load_fixture("boxscore_normal.json"))
+    return load_fixture("boxscore_normal.json")
 
 
 @pytest.fixture(scope="session")
 def sample_content() -> dict:
     """Load the default shared content fixture once per test session."""
-    return copy.deepcopy(load_fixture("content_with_video.json"))
+    return load_fixture("content_with_video.json")
 
 
 @pytest.fixture

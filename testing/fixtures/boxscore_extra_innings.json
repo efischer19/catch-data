@@ -317,13 +317,13 @@
           },
           "teamStats": {
             "batting": {
-              "runs": 5,
-              "hits": 10,
+              "runs": 6,
+              "hits": 12,
               "homeRuns": 2
             },
             "pitching": {
               "strikeOuts": 8,
-              "earnedRuns": 3
+              "earnedRuns": 5
             }
           },
           "players": {
@@ -382,13 +382,13 @@
           },
           "teamStats": {
             "batting": {
-              "runs": 3,
-              "hits": 8,
+              "runs": 5,
+              "hits": 10,
               "homeRuns": 1
             },
             "pitching": {
               "strikeOuts": 6,
-              "earnedRuns": 5
+              "earnedRuns": 6
             }
           },
           "players": {
