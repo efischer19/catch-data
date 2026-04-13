@@ -93,19 +93,22 @@ metric = GoldMetric(
 ### S3 Path Conventions
 
 ```python
-from datetime import date
-from catch_models import MedallionPaths
+from catch_models import CatchPaths
 
-paths = MedallionPaths("my-project-data-dev")
+CatchPaths.bronze_schedule_key(2026)
+# => "bronze/schedule_2026.json"
 
-paths.bronze("api-source", date(2026, 1, 15))
-# => "bronze/api-source/2026-01-15/"
+CatchPaths.bronze_boxscore_key(745678)
+# => "bronze/boxscore_745678.json"
 
-paths.silver("users", date(2026, 1, 15))
-# => "silver/users/2026-01-15/"
+CatchPaths.silver_master_schedule_key(2026)
+# => "silver/master_schedule_2026.json"
 
-paths.gold("daily-active-users")
-# => "gold/served/daily-active-users/"
+CatchPaths.gold_team_key(147)
+# => "gold/team_147.json"
+
+CatchPaths.gold_upcoming_games_key()
+# => "gold/upcoming_games.json"
 ```
 
 ## API
@@ -126,11 +129,13 @@ paths.gold("daily-active-users")
 
 ### Utilities
 
-* **`MedallionPaths(bucket_name)`** — S3 key prefix generator
-  * `.bronze(source, date)` → `"bronze/{source}/{date}/"`
-  * `.silver(entity, date)` → `"silver/{entity}/{date}/"`
-  * `.gold(metric_name)` → `"gold/served/{metric_name}/"`
-  * `.s3_uri(key_prefix)` → `"s3://{bucket}/{key_prefix}"`
+* **`CatchPaths`** — catch-data S3 object key generator
+  * `.bronze_schedule_key(year)` → `"bronze/schedule_{year}.json"`
+  * `.bronze_boxscore_key(game_pk)` → `"bronze/boxscore_{game_pk}.json"`
+  * `.bronze_content_key(game_pk)` → `"bronze/content_{game_pk}.json"`
+  * `.silver_master_schedule_key(year)` → `"silver/master_schedule_{year}.json"`
+  * `.gold_team_key(team_id)` → `"gold/team_{team_id}.json"`
+  * `.gold_upcoming_games_key()` → `"gold/upcoming_games.json"`
 
 ## Development
 
