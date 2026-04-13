@@ -146,9 +146,18 @@ def _parse_source_updated_at(
         and boxscore.metaData is not None
         and boxscore.metaData.timeStamp is not None
     ):
-        return datetime.strptime(boxscore.metaData.timeStamp, "%Y%m%d_%H%M%S").replace(
-            tzinfo=UTC,
-        )
+        try:
+            return datetime.strptime(
+                boxscore.metaData.timeStamp,
+                "%Y%m%d_%H%M%S",
+            ).replace(
+                tzinfo=UTC,
+            )
+        except ValueError as error:
+            raise ValueError(
+                "Unsupported boxscore metadata timestamp "
+                f"{boxscore.metaData.timeStamp!r}; expected YYYYMMDD_HHMMSS"
+            ) from error
     if boxscore is not None and boxscore.gameData.datetime.dateTime is not None:
         return _parse_timestamp(boxscore.gameData.datetime.dateTime)
     return _parse_timestamp(schedule_game.gameDate)
@@ -170,7 +179,9 @@ def _team_abbreviation(
         team_id,
         team_name,
     )
-    raise ValueError(f"Unsupported team abbreviation mapping for id={team_id}")
+    raise ValueError(
+        f"Unsupported team abbreviation mapping for id={team_id} name={team_name}"
+    )
 
 
 def _playback_resolution(playback: Any) -> int:
@@ -349,7 +360,11 @@ def build_silver_game(
             if linescore is not None
             else None,
             "inning_state": linescore.inningState if linescore is not None else None,
-            "innings": linescore.currentInning if linescore is not None else None,
+            "innings": (
+                max(linescore.currentInning or 0, linescore.scheduledInnings)
+                if linescore is not None
+                else None
+            ),
             "away_runs": linescore.teams.away.runs if linescore is not None else None,
             "away_hits": linescore.teams.away.hits if linescore is not None else None,
             "away_errors": (
