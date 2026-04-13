@@ -99,6 +99,10 @@ _TEAM_ABBREVIATIONS_BY_NAME = {
 }
 
 
+class MissingS3ObjectError(Exception):
+    """Raised when an optional Bronze S3 object is not available yet."""
+
+
 def create_s3_client():
     """Create an S3 client lazily so tests do not require boto3 installed."""
     import boto3
@@ -206,10 +210,10 @@ def _is_condensed_candidate(
     if item_type == "condensedGame":
         return True
 
-    haystack = " ".join(
+    combined_text = " ".join(
         value.lower() for value in (container_title, title, description) if value
     )
-    return "condensed" in haystack or "extended highlights" in haystack
+    return "condensed" in combined_text or "extended highlights" in combined_text
 
 
 def extract_condensed_game_url(content: ContentResponse | None) -> str | None:
@@ -243,7 +247,7 @@ def extract_condensed_game_url(content: ContentResponse | None) -> str | None:
 
 
 def _is_missing_object_error(error: Exception) -> bool:
-    if isinstance(error, KeyError):
+    if isinstance(error, MissingS3ObjectError):
         return True
     response = getattr(error, "response", None)
     if not isinstance(response, dict):
@@ -253,7 +257,10 @@ def _is_missing_object_error(error: Exception) -> bool:
 
 
 def _read_json_bytes(s3_client: Any, bucket: str, key: str) -> bytes:
-    response = s3_client.get_object(Bucket=bucket, Key=key)
+    try:
+        response = s3_client.get_object(Bucket=bucket, Key=key)
+    except KeyError as error:
+        raise MissingS3ObjectError(key) from error
     return response["Body"].read()
 
 
