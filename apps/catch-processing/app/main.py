@@ -99,10 +99,6 @@ _TEAM_ABBREVIATIONS_BY_NAME = {
 }
 
 
-class MissingS3ObjectError(Exception):
-    """Raised when an optional Bronze S3 object is not available yet."""
-
-
 def create_s3_client():
     """Create an S3 client lazily so tests do not require boto3 installed."""
     import boto3
@@ -247,8 +243,6 @@ def extract_condensed_game_url(content: ContentResponse | None) -> str | None:
 
 
 def _is_missing_object_error(error: Exception) -> bool:
-    if isinstance(error, MissingS3ObjectError):
-        return True
     response = getattr(error, "response", None)
     if not isinstance(response, dict):
         return False
@@ -257,10 +251,7 @@ def _is_missing_object_error(error: Exception) -> bool:
 
 
 def _read_json_bytes(s3_client: Any, bucket: str, key: str) -> bytes:
-    try:
-        response = s3_client.get_object(Bucket=bucket, Key=key)
-    except KeyError as error:
-        raise MissingS3ObjectError(key) from error
+    response = s3_client.get_object(Bucket=bucket, Key=key)
     return response["Body"].read()
 
 
@@ -492,10 +483,11 @@ def cli():
 @click.option("--year", type=int, required=True, help="Season year to rebuild.")
 @click.option(
     "--bucket",
-    default=lambda: os.environ.get("S3_BUCKET_NAME", ""),
+    default=None,
+    envvar="S3_BUCKET_NAME",
     help="S3 bucket containing Bronze and Silver objects.",
 )
-def process(year: int, bucket: str):
+def process(year: int, bucket: str | None):
     """Rebuild the Silver master schedule for one season."""
     if not bucket:
         raise click.ClickException("Provide --bucket or set S3_BUCKET_NAME")

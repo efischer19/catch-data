@@ -15,9 +15,9 @@ from app import main
 
 def _repo_root() -> Path:
     for candidate in Path(__file__).resolve().parents:
-        if not (candidate / ".git").exists():
-            continue
-        if (candidate / "libs" / "catch-models" / "tests" / "fixtures").exists():
+        if (candidate / ".git").exists() and (
+            candidate / "libs" / "catch-models" / "tests" / "fixtures"
+        ).exists():
             return candidate
     raise RuntimeError("Unable to locate repository root for shared test fixtures")
 
