@@ -1,208 +1,344 @@
-"""Gold layer analytics pipeline — aggregate data into business metrics.
+"""Gold layer analytics pipeline for team schedule JSON generation."""
 
-This module demonstrates the Gold (analytics) stage of the medallion
-architecture. It reads validated silver data from S3, computes
-aggregations and business metrics, and writes the results to the
-``gold/served/{metric_name}/`` prefix in S3.
-
-Data flow::
-
-    S3 silver/{entity}/{date}/  ──►  Aggregate  ──►  S3 gold/served/{metric_name}/
-
-See ADR-018 (Medallion Architecture) for pattern context.
-
-Customize this module:
-    1. Replace the placeholder ``read_from_s3`` with real ``boto3`` calls
-       to read silver data.
-    2. Implement your aggregation logic in ``compute_metrics``.
-    3. Update ``GoldMetric`` in ``libs/catch-models`` with your business
-       metric fields.
-    4. Replace the ``write_to_s3`` placeholder with real ``boto3`` calls.
-"""
+from __future__ import annotations
 
 import json
 import logging
 import os
+from dataclasses import dataclass
+from datetime import UTC, datetime
+from datetime import date as date_type
+from typing import Any
 
 import click
+from catch_models import (
+    CatchPaths,
+    DataCompleteness,
+    GoldBoxscoreSummary,
+    GoldGameSummary,
+    GoldScore,
+    GoldTeamInfo,
+    GoldTeamSchedule,
+    SilverGame,
+    SilverMasterSchedule,
+)
 
 logger = logging.getLogger(__name__)
 
 
-# ---------------------------------------------------------------------------
-# S3 reader — replace with real boto3 calls
-# ---------------------------------------------------------------------------
-def read_from_s3(s3_key_prefix: str) -> list[dict]:
-    """Read silver records from S3.
+@dataclass(frozen=True)
+class TeamDirectoryEntry:
+    """Fallback metadata for the 30 MLB teams."""
 
-    Parameters
-    ----------
-    s3_key_prefix : str
-        The S3 key prefix for silver data
-        (e.g., ``"silver/users/2026-01-15/"``).
-
-    Returns
-    -------
-    list[dict]
-        Validated silver records read from S3.
-
-    Example implementation::
-
-        import boto3
-        import os
-
-        def read_from_s3(s3_key_prefix: str) -> list[dict]:
-            s3 = boto3.client("s3")
-            bucket = os.environ["S3_BUCKET_NAME"]
-            response = s3.list_objects_v2(Bucket=bucket, Prefix=s3_key_prefix)
-            records = []
-            for obj in response.get("Contents", []):
-                data = s3.get_object(Bucket=bucket, Key=obj["Key"])
-                for line in data["Body"].read().decode().splitlines():
-                    records.append(json.loads(line))
-            return records
-    """
-    # TODO: Replace with real S3 read logic using boto3.
-    logger.info("Would read from %s (placeholder)", s3_key_prefix)
-    return [
-        {"entity_id": "1", "name": "example-a"},
-        {"entity_id": "2", "name": "example-b"},
-        {"entity_id": "3", "name": "example-a"},
-    ]
+    team_id: int
+    team_name: str
+    team_abbreviation: str
+    league: str
+    division: str
 
 
-# ---------------------------------------------------------------------------
-# Aggregation logic — replace with your domain-specific computations
-# ---------------------------------------------------------------------------
-def compute_metrics(records: list[dict]) -> list[dict]:
-    """Compute business metrics from silver records.
-
-    Parameters
-    ----------
-    records : list[dict]
-        Validated silver records.
-
-    Returns
-    -------
-    list[dict]
-        Computed metrics ready for the gold layer.
-
-    Customize this function:
-        - Implement grouping, counting, averaging, or other aggregations.
-        - Add dimensions for slicing (region, category, etc.).
-        - Return one dict per metric/dimension combination.
-    """
-    # TODO: Replace with real aggregation logic.
-    # Example: count records by name
-    counts: dict[str, int] = {}
-    for record in records:
-        name = record.get("name", "unknown")
-        counts[name] = counts.get(name, 0) + 1
-
-    return [
-        {
-            "metric_name": "record-count-by-name",
-            "value": float(count),
-            "dimensions": {"name": name},
-        }
-        for name, count in counts.items()
-    ]
+def _team_entry(
+    team_id: int,
+    team_name: str,
+    team_abbreviation: str,
+    league: str,
+    division: str,
+) -> TeamDirectoryEntry:
+    return TeamDirectoryEntry(team_id, team_name, team_abbreviation, league, division)
 
 
-# ---------------------------------------------------------------------------
-# S3 writer — replace with real boto3 calls
-# ---------------------------------------------------------------------------
-def write_to_s3(records: list[dict], s3_key_prefix: str) -> int:
-    """Write gold metrics to S3 as newline-delimited JSON.
+MLB_TEAM_DIRECTORY: dict[int, TeamDirectoryEntry] = {
+    108: _team_entry(108, "Los Angeles Angels", "LAA", "American League", "AL West"),
+    109: _team_entry(109, "Arizona Diamondbacks", "AZ", "National League", "NL West"),
+    110: _team_entry(110, "Baltimore Orioles", "BAL", "American League", "AL East"),
+    111: _team_entry(111, "Boston Red Sox", "BOS", "American League", "AL East"),
+    112: _team_entry(112, "Chicago Cubs", "CHC", "National League", "NL Central"),
+    113: _team_entry(113, "Cincinnati Reds", "CIN", "National League", "NL Central"),
+    114: _team_entry(
+        114,
+        "Cleveland Guardians",
+        "CLE",
+        "American League",
+        "AL Central",
+    ),
+    115: _team_entry(115, "Colorado Rockies", "COL", "National League", "NL West"),
+    116: _team_entry(116, "Detroit Tigers", "DET", "American League", "AL Central"),
+    117: _team_entry(117, "Houston Astros", "HOU", "American League", "AL West"),
+    118: _team_entry(118, "Kansas City Royals", "KC", "American League", "AL Central"),
+    119: _team_entry(119, "Los Angeles Dodgers", "LAD", "National League", "NL West"),
+    120: _team_entry(120, "Washington Nationals", "WSH", "National League", "NL East"),
+    121: _team_entry(121, "New York Mets", "NYM", "National League", "NL East"),
+    133: _team_entry(133, "Oakland Athletics", "ATH", "American League", "AL West"),
+    134: _team_entry(134, "Pittsburgh Pirates", "PIT", "National League", "NL Central"),
+    135: _team_entry(135, "San Diego Padres", "SD", "National League", "NL West"),
+    136: _team_entry(136, "Seattle Mariners", "SEA", "American League", "AL West"),
+    137: _team_entry(137, "San Francisco Giants", "SF", "National League", "NL West"),
+    138: _team_entry(
+        138,
+        "St. Louis Cardinals",
+        "STL",
+        "National League",
+        "NL Central",
+    ),
+    139: _team_entry(139, "Tampa Bay Rays", "TB", "American League", "AL East"),
+    140: _team_entry(140, "Texas Rangers", "TEX", "American League", "AL West"),
+    141: _team_entry(141, "Toronto Blue Jays", "TOR", "American League", "AL East"),
+    142: _team_entry(142, "Minnesota Twins", "MIN", "American League", "AL Central"),
+    143: _team_entry(143, "Philadelphia Phillies", "PHI", "National League", "NL East"),
+    144: _team_entry(144, "Atlanta Braves", "ATL", "National League", "NL East"),
+    145: _team_entry(145, "Chicago White Sox", "CWS", "American League", "AL Central"),
+    146: _team_entry(146, "Miami Marlins", "MIA", "National League", "NL East"),
+    147: _team_entry(147, "New York Yankees", "NYY", "American League", "AL East"),
+    158: _team_entry(158, "Milwaukee Brewers", "MIL", "National League", "NL Central"),
+}
 
-    Parameters
-    ----------
-    records : list[dict]
-        Computed metrics to persist.
-    s3_key_prefix : str
-        The S3 key prefix (e.g., ``"gold/served/daily-metrics/"``).
 
-    Returns
-    -------
-    int
-        Number of records written.
+def _bucket_name(bucket_name: str | None = None) -> str:
+    return bucket_name or os.environ.get("S3_BUCKET_NAME", "catch-data-data-dev")
 
-    Example implementation::
 
-        import boto3
-        import os
+def _create_s3_client() -> Any:
+    import boto3
 
-        def write_to_s3(records: list[dict], s3_key_prefix: str) -> int:
-            s3 = boto3.client("s3")
-            bucket = os.environ["S3_BUCKET_NAME"]
-            key = f"{s3_key_prefix}data.jsonl"
-            body = "\\n".join(json.dumps(r) for r in records)
-            s3.put_object(Bucket=bucket, Key=key, Body=body)
-            return len(records)
-    """
-    # TODO: Replace with real S3 write logic using boto3.
-    logger.info(
-        "Would write %d records to %s (placeholder)", len(records), s3_key_prefix
+    return boto3.client("s3")
+
+
+def _team_directory_entry(team_id: int) -> TeamDirectoryEntry:
+    try:
+        return MLB_TEAM_DIRECTORY[team_id]
+    except KeyError as exc:
+        msg = f"unknown MLB team id: {team_id}"
+        raise ValueError(msg) from exc
+
+
+def _gold_team_info(
+    team_id: int, team_name: str, team_abbreviation: str
+) -> GoldTeamInfo:
+    team = _team_directory_entry(team_id)
+    return GoldTeamInfo(
+        id=team_id,
+        name=team_name,
+        abbreviation=team_abbreviation,
+        league=team.league,
+        division=team.division,
     )
-    return len(records)
 
 
-# ---------------------------------------------------------------------------
-# CLI entry point
-# ---------------------------------------------------------------------------
+def _score_for_game(game: SilverGame) -> GoldScore | None:
+    if game.away_runs is None or game.home_runs is None:
+        return None
+    return GoldScore(away=game.away_runs, home=game.home_runs)
+
+
+def _boxscore_for_game(game: SilverGame) -> GoldBoxscoreSummary | None:
+    stats = (
+        game.away_runs,
+        game.away_hits,
+        game.away_errors,
+        game.home_runs,
+        game.home_hits,
+        game.home_errors,
+    )
+    if game.data_completeness is not DataCompleteness.FULL or any(
+        value is None for value in stats
+    ):
+        return None
+
+    return GoldBoxscoreSummary(
+        away_r=game.away_runs,
+        away_h=game.away_hits,
+        away_e=game.away_errors,
+        home_r=game.home_runs,
+        home_h=game.home_hits,
+        home_e=game.home_errors,
+        winning_pitcher=game.winning_pitcher_name,
+        losing_pitcher=game.losing_pitcher_name,
+        save_pitcher=game.save_pitcher_name,
+    )
+
+
+def build_gold_game_summary(game: SilverGame) -> GoldGameSummary:
+    """Transform one Silver game into the frontend-facing Gold summary model."""
+
+    score = _score_for_game(game)
+    return GoldGameSummary(
+        game_pk=game.game_pk,
+        date=game.date,
+        status=game.status,
+        game_number=game.game_number,
+        venue_name=game.venue_name,
+        home_team=_gold_team_info(
+            team_id=game.home_team_id,
+            team_name=game.home_team_name,
+            team_abbreviation=game.home_team_abbreviation,
+        ),
+        away_team=_gold_team_info(
+            team_id=game.away_team_id,
+            team_name=game.away_team_name,
+            team_abbreviation=game.away_team_abbreviation,
+        ),
+        score=score,
+        score_display=f"{score.away}-{score.home}" if score else None,
+        condensed_game_url=(
+            str(game.condensed_game_url) if game.condensed_game_url else None
+        ),
+        boxscore_summary=_boxscore_for_game(game),
+    )
+
+
+def read_master_schedule(
+    year: int,
+    *,
+    s3_client: Any | None = None,
+    bucket_name: str | None = None,
+) -> SilverMasterSchedule:
+    """Read and validate the Silver master schedule for a season."""
+
+    client = s3_client or _create_s3_client()
+    key = CatchPaths.silver_master_schedule_key(year)
+    response = client.get_object(Bucket=_bucket_name(bucket_name), Key=key)
+    return SilverMasterSchedule.model_validate_json(response["Body"].read())
+
+
+def _team_schedule_identity(
+    team_id: int, team_games: list[SilverGame]
+) -> tuple[str, str]:
+    for game in team_games:
+        if game.home_team_id == team_id:
+            return game.home_team_name, game.home_team_abbreviation
+        if game.away_team_id == team_id:
+            return game.away_team_name, game.away_team_abbreviation
+
+    fallback = _team_directory_entry(team_id)
+    return fallback.team_name, fallback.team_abbreviation
+
+
+def build_team_schedule(
+    master_schedule: SilverMasterSchedule,
+    team_id: int,
+    *,
+    last_updated: datetime | None = None,
+) -> GoldTeamSchedule:
+    """Build one team's Gold schedule from the season-wide Silver schedule."""
+
+    team_games = [
+        game
+        for game in master_schedule.games
+        if game.home_team_id == team_id or game.away_team_id == team_id
+    ]
+    team_games.sort(key=lambda game: (game.date, game.game_number, game.game_pk))
+
+    team_name, team_abbreviation = _team_schedule_identity(team_id, team_games)
+    return GoldTeamSchedule(
+        team_id=team_id,
+        team_name=team_name,
+        team_abbreviation=team_abbreviation,
+        season_year=master_schedule.year,
+        last_updated=last_updated or datetime.now(UTC),
+        games=[build_gold_game_summary(game) for game in team_games],
+    )
+
+
+def build_team_schedules(
+    master_schedule: SilverMasterSchedule,
+    *,
+    last_updated: datetime | None = None,
+) -> dict[int, GoldTeamSchedule]:
+    """Build schedules for all 30 MLB teams in one pass."""
+
+    timestamp = last_updated or datetime.now(UTC)
+    return {
+        team_id: build_team_schedule(
+            master_schedule,
+            team_id,
+            last_updated=timestamp,
+        )
+        for team_id in MLB_TEAM_DIRECTORY
+    }
+
+
+def write_team_schedules(
+    schedules: dict[int, GoldTeamSchedule],
+    *,
+    s3_client: Any | None = None,
+    bucket_name: str | None = None,
+) -> int:
+    """Validate and write Gold team schedules to S3."""
+
+    client = s3_client or _create_s3_client()
+    bucket = _bucket_name(bucket_name)
+
+    for team_id, schedule in schedules.items():
+        validated = GoldTeamSchedule.model_validate(schedule)
+        body = json.dumps(
+            validated.model_dump(mode="json", exclude_none=True),
+            separators=(",", ":"),
+        ).encode("utf-8")
+        client.put_object(
+            Bucket=bucket,
+            Key=CatchPaths.gold_team_key(team_id),
+            Body=body,
+            ContentType="application/json",
+        )
+
+    return len(schedules)
+
+
+def generate_team_schedules(
+    year: int,
+    *,
+    s3_client: Any | None = None,
+    bucket_name: str | None = None,
+    last_updated: datetime | None = None,
+) -> dict[int, GoldTeamSchedule]:
+    """Read Silver schedule data, build 30 team schedules, and write Gold JSON."""
+
+    master_schedule = read_master_schedule(
+        year,
+        s3_client=s3_client,
+        bucket_name=bucket_name,
+    )
+    schedules = build_team_schedules(master_schedule, last_updated=last_updated)
+    write_team_schedules(
+        schedules,
+        s3_client=s3_client,
+        bucket_name=bucket_name,
+    )
+    logger.info("Wrote %d team schedules for %s", len(schedules), year)
+    return schedules
+
+
+def lambda_handler(event: dict[str, Any] | None, _context: Any) -> dict[str, Any]:
+    """AWS Lambda entrypoint for Gold team schedule generation."""
+
+    raw_year = (event or {}).get("year", date_type.today().year)
+    year = int(raw_year)
+    schedules = generate_team_schedules(year)
+    return {
+        "year": year,
+        "team_schedule_count": len(schedules),
+    }
+
+
 @click.group()
 def cli():
     """Gold layer analytics pipeline CLI."""
 
 
-@cli.command()
-@click.option("--entity", default="entities", help="Silver entity type to aggregate.")
+@cli.command("generate-team-schedules")
 @click.option(
-    "--metric-name", default="summary-metrics", help="Name of the output metric."
+    "--year",
+    type=int,
+    default=date_type.today().year,
+    show_default=True,
+    help="Season year to transform from silver/master_schedule_{year}.json.",
 )
-@click.option(
-    "--date",
-    "processing_date",
-    default=None,
-    help="Processing date (YYYY-MM-DD). Defaults to today.",
-)
-def aggregate(entity: str, metric_name: str, processing_date: str | None):
-    """Aggregate silver data into gold business metrics.
+def generate_team_schedules_command(year: int):
+    """Generate Gold team schedule files for all 30 MLB teams."""
 
-    Reads validated entities from the silver prefix, computes metrics,
-    validates them with the GoldMetric model, and writes results to the
-    gold served prefix.
-    """
-    from datetime import date as date_type
-
-    from catch_models import GoldMetric, MedallionPaths
-
-    processing = (
-        date_type.fromisoformat(processing_date)
-        if processing_date
-        else date_type.today()
-    )
-
-    paths = MedallionPaths(os.environ.get("S3_BUCKET_NAME", "catch-data-data-dev"))
-    silver_prefix = paths.silver(entity, processing)
-    gold_prefix = paths.gold(metric_name)
-
-    click.echo(f"Reading silver data from {silver_prefix}")
-
-    silver_records = read_from_s3(silver_prefix)
-    click.echo(f"Read {len(silver_records)} silver records")
-
-    raw_metrics = compute_metrics(silver_records)
-
-    gold_records = []
-    for raw in raw_metrics:
-        validated = GoldMetric(**raw)
-        gold_records.append(json.loads(validated.model_dump_json()))
-
-    click.echo(f"Computed {len(gold_records)} gold metrics")
-
-    count = write_to_s3(gold_records, gold_prefix)
-    click.echo(f"Wrote {count} gold metrics to {gold_prefix}")
+    click.echo(f"Reading Silver master schedule for {year}")
+    schedules = generate_team_schedules(year)
+    click.echo(f"Wrote {len(schedules)} Gold team schedule files")
 
 
 if __name__ == "__main__":

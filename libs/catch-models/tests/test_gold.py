@@ -146,6 +146,7 @@ def _silver_to_gold_game(silver: SilverGame, team_info: dict) -> GoldGameSummary
         date=silver.date,
         status=silver.status,
         game_number=silver.game_number,
+        venue_name=silver.venue_name,
         home_team=team_info[silver.home_team_id],
         away_team=team_info[silver.away_team_id],
         score=score,
@@ -257,6 +258,7 @@ class TestGoldGameSummary:
             date=datetime(2026, 7, 4, 17, 5, tzinfo=UTC),
             status="Final",
             game_number=1,
+            venue_name="Yankee Stadium",
             home_team=_HOME_TEAM,
             away_team=_AWAY_TEAM,
             score=GoldScore(away=3, home=5),
@@ -280,6 +282,7 @@ class TestGoldGameSummary:
         assert dumped["date"] == "2026-07-04T17:05:00Z"
         assert dumped["status"] == "Final"
         assert dumped["game_number"] == 1
+        assert dumped["venue_name"] == "Yankee Stadium"
         assert dumped["score"] == {"away": 3, "home": 5}
         assert dumped["score_display"] == "3-5"
         assert "condensed-game.mp4" in dumped["condensed_game_url"]
@@ -295,10 +298,12 @@ class TestGoldGameSummary:
             date=datetime(2026, 9, 15, 18, 10, tzinfo=UTC),
             status="Scheduled",
             game_number=1,
+            venue_name="Yankee Stadium",
             home_team=_HOME_TEAM,
             away_team=_AWAY_TEAM,
         )
         dumped = game.model_dump(mode="json")
+        assert dumped["venue_name"] == "Yankee Stadium"
         assert dumped["score"] is None
         assert dumped["score_display"] is None
         assert dumped["condensed_game_url"] is None
@@ -310,6 +315,7 @@ class TestGoldGameSummary:
             date=datetime(2026, 8, 12, 16, 10, tzinfo=UTC),
             status="Postponed",
             game_number=2,
+            venue_name="Yankee Stadium",
             home_team=_HOME_TEAM,
             away_team=_AWAY_TEAM,
         )
@@ -325,6 +331,7 @@ class TestGoldGameSummary:
             date=datetime(2026, 7, 4, 13, 5, tzinfo=UTC),
             status="Final",
             game_number=1,
+            venue_name="Yankee Stadium",
             home_team=_HOME_TEAM,
             away_team=_AWAY_TEAM,
         )
@@ -359,6 +366,7 @@ class TestGoldTeamSchedule:
                 date=datetime(2026, 7, 4, 17, 5, tzinfo=UTC),
                 status="Final",
                 game_number=1,
+                venue_name="Yankee Stadium",
                 home_team=_HOME_TEAM,
                 away_team=_AWAY_TEAM,
                 score=GoldScore(away=3, home=5),
@@ -369,6 +377,7 @@ class TestGoldTeamSchedule:
                 date=datetime(2026, 7, 5, 18, 5, tzinfo=UTC),
                 status="Scheduled",
                 game_number=1,
+                venue_name="Yankee Stadium",
                 home_team=_HOME_TEAM,
                 away_team=_AWAY_TEAM,
             ),
@@ -409,6 +418,7 @@ class TestGoldUpcomingGames:
                     date=datetime(2026, 7, 4, 17, 5, tzinfo=UTC),
                     status="Final",
                     game_number=1,
+                    venue_name="Yankee Stadium",
                     home_team=_HOME_TEAM,
                     away_team=_AWAY_TEAM,
                     score=GoldScore(away=3, home=5),

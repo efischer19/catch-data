@@ -133,6 +133,7 @@ class GoldGameSummary(BaseModel):
     * ``score`` / ``score_display`` — absent for pre-game or postponed
     * ``condensed_game_url`` — absent when MLB has not published a clip
     * ``boxscore_summary`` — absent for incomplete or postponed games
+    * ``venue_name`` — ballpark name for schedule cards and game detail links
 
     Doubleheader handling
     ---------------------
@@ -159,6 +160,10 @@ class GoldGameSummary(BaseModel):
         1,
         ge=1,
         description="Doubleheader game number (1 for single games)",
+    )
+    venue_name: str | None = Field(
+        None,
+        description="Ballpark name for upcoming or completed games",
     )
     home_team: GoldTeamInfo
     away_team: GoldTeamInfo
