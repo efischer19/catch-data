@@ -23,3 +23,17 @@ variable "aws_region" {
   type        = string
   default     = "us-west-2"
 }
+
+variable "cors_allowed_origins" {
+  description = "Frontend origins allowed to read Gold-layer objects via S3 CORS"
+  type        = list(string)
+  default     = []
+
+  validation {
+    condition = alltrue([
+      for origin in var.cors_allowed_origins :
+      origin != "*" && can(regex("^https?://", origin))
+    ])
+    error_message = "CORS origins must be explicit http(s) URLs and may not use '*'."
+  }
+}

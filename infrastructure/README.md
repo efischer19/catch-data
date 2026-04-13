@@ -46,6 +46,31 @@ Once setup is complete:
 | Terraform state bucket | `catch-data-tf-state` |
 | Terraform lock table | `catch-data-tf-lock` |
 | Project name | `catch-data` |
+| Data bucket | `catch-data-{environment}` |
+
+## S3 Data Bucket Configuration
+
+The Catch pipeline data bucket is provisioned as `catch-data-{environment}` and
+stores Bronze, Silver, and Gold objects in a single bucket using key prefixes.
+
+Key bucket settings:
+
+* Versioning is enabled to preserve prior object versions for rollback.
+* Default server-side encryption uses SSE-S3 (`AES256`).
+* Bucket-level public access is fully blocked.
+* Lifecycle transitions move `bronze/` and `silver/` objects to
+  `STANDARD_IA` after 90 days.
+* Lifecycle transitions move `bronze/` objects to `DEEP_ARCHIVE` after
+  365 days.
+* A narrow CORS policy allows `GET` requests only from the configured
+  frontend origin list in `var.cors_allowed_origins`.
+
+If `cors_allowed_origins` is not explicitly set, Terraform defaults to the
+placeholder origin `https://catch-app.{environment}.example.com`. Override this
+per environment before applying.
+
+S3 event notifications are intentionally not configured yet; they will be added
+once the downstream Lambda functions exist.
 
 > **Note:** Never commit real AWS account IDs, ARNs, or credentials to version
 > control.
