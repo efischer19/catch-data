@@ -165,13 +165,12 @@ def _team_abbreviation(
         return _TEAM_ABBREVIATIONS_BY_ID[team_id]
     if team_name in _TEAM_ABBREVIATIONS_BY_NAME:
         return _TEAM_ABBREVIATIONS_BY_NAME[team_name]
-    logger.warning(
-        "Falling back to derived team abbreviation for id=%s name=%s",
+    logger.error(
+        "Missing team abbreviation mapping for id=%s name=%s",
         team_id,
         team_name,
     )
-    letters = [token[0] for token in team_name.split() if token and token[0].isalpha()]
-    return "".join(letters[:3]).upper()
+    raise ValueError(f"Unsupported team abbreviation mapping for id={team_id}")
 
 
 def _playback_resolution(playback: Any) -> int:
@@ -181,7 +180,11 @@ def _playback_resolution(playback: Any) -> int:
 
 
 def _best_playback_url(playbacks: list[Any]) -> str | None:
-    playable = [playback for playback in playbacks if playback.url.endswith(".mp4")]
+    playable = [
+        playback
+        for playback in playbacks
+        if hasattr(playback, "url") and playback.url.endswith(".mp4")
+    ]
     if not playable:
         return None
     playable.sort(
@@ -302,69 +305,84 @@ def build_silver_game(
     content: ContentResponse | None,
 ) -> SilverGame | None:
     """Join Bronze schedule, boxscore, and content data into one Silver game."""
-    linescore = (
-        boxscore.liveData.linescore if boxscore is not None else schedule_game.linescore
-    )
-    away_boxscore_team = boxscore.gameData.teams.away if boxscore is not None else None
-    home_boxscore_team = boxscore.gameData.teams.home if boxscore is not None else None
-    decisions = boxscore.liveData.decisions if boxscore is not None else None
-
-    payload = {
-        "gamePk": schedule_game.gamePk,
-        "date": _parse_timestamp(schedule_game.gameDate),
-        "game_type": schedule_game.gameType,
-        "game_number": schedule_game.gameNumber,
-        "doubleheader_type": schedule_game.doubleHeader,
-        "away_team_id": schedule_game.teams.away.team.id,
-        "away_team_name": schedule_game.teams.away.team.name,
-        "away_team_abbreviation": _team_abbreviation(
-            schedule_game.teams.away.team.id,
-            schedule_game.teams.away.team.name,
-            away_boxscore_team.abbreviation if away_boxscore_team is not None else None,
-        ),
-        "home_team_id": schedule_game.teams.home.team.id,
-        "home_team_name": schedule_game.teams.home.team.name,
-        "home_team_abbreviation": _team_abbreviation(
-            schedule_game.teams.home.team.id,
-            schedule_game.teams.home.team.name,
-            home_boxscore_team.abbreviation if home_boxscore_team is not None else None,
-        ),
-        "venue_id": schedule_game.venue.id,
-        "venue_name": schedule_game.venue.name,
-        "status": schedule_game.status.abstractGameState,
-        "status_detail": schedule_game.status.detailedState,
-        "current_inning": linescore.currentInning if linescore is not None else None,
-        "inning_state": linescore.inningState if linescore is not None else None,
-        "innings": linescore.currentInning if linescore is not None else None,
-        "away_runs": linescore.teams.away.runs if linescore is not None else None,
-        "away_hits": linescore.teams.away.hits if linescore is not None else None,
-        "away_errors": linescore.teams.away.errors if linescore is not None else None,
-        "home_runs": linescore.teams.home.runs if linescore is not None else None,
-        "home_hits": linescore.teams.home.hits if linescore is not None else None,
-        "home_errors": linescore.teams.home.errors if linescore is not None else None,
-        "winning_pitcher_name": (
-            decisions.winner.fullName
-            if decisions is not None and decisions.winner is not None
-            else None
-        ),
-        "losing_pitcher_name": (
-            decisions.loser.fullName
-            if decisions is not None and decisions.loser is not None
-            else None
-        ),
-        "save_pitcher_name": (
-            decisions.save.fullName
-            if decisions is not None and decisions.save is not None
-            else None
-        ),
-        "condensed_game_url": extract_condensed_game_url(content),
-        "source_updated_at": _parse_source_updated_at(schedule_game, boxscore),
-        "data_completeness": _boxscore_completeness(boxscore),
-    }
-
     try:
+        linescore = (
+            boxscore.liveData.linescore
+            if boxscore is not None
+            else schedule_game.linescore
+        )
+        away_boxscore_team = (
+            boxscore.gameData.teams.away if boxscore is not None else None
+        )
+        home_boxscore_team = (
+            boxscore.gameData.teams.home if boxscore is not None else None
+        )
+        decisions = boxscore.liveData.decisions if boxscore is not None else None
+
+        payload = {
+            "gamePk": schedule_game.gamePk,
+            "date": _parse_timestamp(schedule_game.gameDate),
+            "game_type": schedule_game.gameType,
+            "game_number": schedule_game.gameNumber,
+            "doubleheader_type": schedule_game.doubleHeader,
+            "away_team_id": schedule_game.teams.away.team.id,
+            "away_team_name": schedule_game.teams.away.team.name,
+            "away_team_abbreviation": _team_abbreviation(
+                schedule_game.teams.away.team.id,
+                schedule_game.teams.away.team.name,
+                away_boxscore_team.abbreviation
+                if away_boxscore_team is not None
+                else None,
+            ),
+            "home_team_id": schedule_game.teams.home.team.id,
+            "home_team_name": schedule_game.teams.home.team.name,
+            "home_team_abbreviation": _team_abbreviation(
+                schedule_game.teams.home.team.id,
+                schedule_game.teams.home.team.name,
+                home_boxscore_team.abbreviation
+                if home_boxscore_team is not None
+                else None,
+            ),
+            "venue_id": schedule_game.venue.id,
+            "venue_name": schedule_game.venue.name,
+            "status": schedule_game.status.abstractGameState,
+            "status_detail": schedule_game.status.detailedState,
+            "current_inning": linescore.currentInning
+            if linescore is not None
+            else None,
+            "inning_state": linescore.inningState if linescore is not None else None,
+            "innings": linescore.currentInning if linescore is not None else None,
+            "away_runs": linescore.teams.away.runs if linescore is not None else None,
+            "away_hits": linescore.teams.away.hits if linescore is not None else None,
+            "away_errors": (
+                linescore.teams.away.errors if linescore is not None else None
+            ),
+            "home_runs": linescore.teams.home.runs if linescore is not None else None,
+            "home_hits": linescore.teams.home.hits if linescore is not None else None,
+            "home_errors": (
+                linescore.teams.home.errors if linescore is not None else None
+            ),
+            "winning_pitcher_name": (
+                decisions.winner.fullName
+                if decisions is not None and decisions.winner is not None
+                else None
+            ),
+            "losing_pitcher_name": (
+                decisions.loser.fullName
+                if decisions is not None and decisions.loser is not None
+                else None
+            ),
+            "save_pitcher_name": (
+                decisions.save.fullName
+                if decisions is not None and decisions.save is not None
+                else None
+            ),
+            "condensed_game_url": extract_condensed_game_url(content),
+            "source_updated_at": _parse_source_updated_at(schedule_game, boxscore),
+            "data_completeness": _boxscore_completeness(boxscore),
+        }
         return SilverGame.model_validate(payload)
-    except ValidationError:
+    except (ValidationError, ValueError):
         logger.exception(
             "Skipping invalid Silver game payload for gamePk=%s",
             schedule_game.gamePk,
