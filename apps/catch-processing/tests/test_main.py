@@ -50,6 +50,12 @@ class _Body:
         return self._payload
 
 
+class _FakeClientError(Exception):
+    def __init__(self, code: str):
+        super().__init__(code)
+        self.response = {"Error": {"Code": code}}
+
+
 class _FakeS3Client:
     def __init__(self, objects: dict[str, bytes]):
         self.objects = objects
@@ -58,7 +64,7 @@ class _FakeS3Client:
     def get_object(self, Bucket: str, Key: str) -> dict:
         del Bucket
         if Key not in self.objects:
-            raise KeyError(Key)
+            raise _FakeClientError("NoSuchKey")
         return {"Body": _Body(self.objects[Key])}
 
     def put_object(self, Bucket: str, Key: str, Body: bytes, ContentType: str) -> None:
