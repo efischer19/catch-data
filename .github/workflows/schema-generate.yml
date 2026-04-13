@@ -14,6 +14,10 @@ jobs:
   generate-schema:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
+    outputs:
+      schema_changed: ${{ steps.schema-diff.outputs.changed }}
+      source_sha: ${{ steps.source-context.outputs.source_sha }}
+      source_ref: ${{ steps.source-context.outputs.source_ref }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -64,26 +68,24 @@ jobs:
           git commit -m "chore: regenerate schema.json from Gold models"
           git push
 
-      - name: Trigger cross-repo schema sync workflow
-        if: steps.schema-diff.outputs.changed == 'true'
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
+      - name: Capture schema source commit context
+        id: source-context
         run: |
-          curl --fail \
-            --request POST \
-            --url "https://api.github.com/repos/${{ github.repository }}/dispatches" \
-            --header "Accept: application/vnd.github+json" \
-            --header "Authorization: Bearer $GITHUB_TOKEN" \
-            --data @- <<'EOF'
-          {
-            "event_type": "schema-json-updated",
-            "client_payload": {
-              "schema_path": "libs/catch-models/schema.json",
-              "source_ref": "main"
-            }
-          }
-          EOF
+          echo "source_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+          echo "source_ref=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
 
       - name: Exit cleanly when schema is unchanged
         if: steps.schema-diff.outputs.changed == 'false'
         run: echo "No schema changes detected; skipping commit and sync trigger."
+
+  sync-schema:
+    name: Sync schema to catch-app
+    needs: generate-schema
+    if: needs.generate-schema.outputs.schema_changed == 'true'
+    uses: ./.github/workflows/schema-sync.yml
+    with:
+      schema-path: libs/catch-models/schema.json
+      source-sha: ${{ needs.generate-schema.outputs.source_sha }}
+      source-ref: ${{ needs.generate-schema.outputs.source_ref }}
+    secrets:
+      catch_app_sync_token: ${{ secrets.CATCH_APP_SYNC_TOKEN }}
