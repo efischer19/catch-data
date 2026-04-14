@@ -220,6 +220,7 @@ def test_cli_process_rebuilds_master_schedule(monkeypatch: pytest.MonkeyPatch):
     assert result.exit_code == 0
     assert '"games_written": 0' in result.output
 
+
 def test_write_to_s3_returns_count():
     """Verify the placeholder write returns the record count."""
     records = [{"entity_id": "1"}, {"entity_id": "2"}]
