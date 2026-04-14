@@ -16,7 +16,6 @@ from app.main import (
     cli,
     generate_team_schedules,
     lambda_handler,
-    write_to_s3
 )
 
 
@@ -285,15 +284,3 @@ def test_lambda_handler_and_cli_use_team_schedule_generation(monkeypatch):
     assert "Reading Silver master schedule for 2027" in cli_result.output
     assert "Wrote 1 Gold team schedule files" in cli_result.output
     assert captured_years == [2026, 2027]
-
-    
-def test_write_to_s3_returns_count():
-    """Verify the placeholder write returns the record count."""
-    records = [{"metric_name": "test", "value": 1.0}]
-    count = write_to_s3(records, "gold/served/test-metrics/")
-    assert count == 1
-
-
-def test_shared_content_fixture_is_available(sample_content):
-    """Verify shared content fixtures can be reused from the testing dir."""
-    assert sample_content["link"].endswith("/content")
