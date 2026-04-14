@@ -1,0 +1,98 @@
+{
+  "copyright": "Copyright 2024 MLB Advanced Media, L.P.  Use of any content on this page acknowledges agreement to the terms posted here http://gdx.mlb.com/components/copyright.txt",
+  "gamePk": 752200,
+  "link": "/api/v1.1/game/752200/feed/live",
+  "gameData": {
+    "game": {
+      "pk": 752200,
+      "type": "R",
+      "doubleHeader": "N",
+      "id": "2025/07/20/atlmlb-nynmlb-1",
+      "gamedayType": "P",
+      "tiebreaker": "N",
+      "gameNumber": 1,
+      "calendarEventID": "14-752200-2025-07-20",
+      "season": "2025",
+      "seasonDisplay": "2025"
+    },
+    "datetime": {
+      "dateTime": "2025-07-20T20:05:00Z",
+      "originalDate": "2025-07-20",
+      "officialDate": "2025-07-20",
+      "dayNight": "night",
+      "time": "4:05",
+      "ampm": "PM"
+    },
+    "status": {
+      "abstractGameState": "Final",
+      "codedGameState": "D",
+      "detailedState": "Postponed",
+      "statusCode": "DI",
+      "startTimeTBD": false,
+      "abstractGameCode": "F",
+      "reason": "Rain"
+    },
+    "teams": {
+      "away": {
+        "id": 144,
+        "name": "Atlanta Braves",
+        "link": "/api/v1/teams/144"
+      },
+      "home": {
+        "id": 121,
+        "name": "New York Mets",
+        "link": "/api/v1/teams/121"
+      }
+    },
+    "venue": {
+      "id": 3289,
+      "name": "Citi Field",
+      "link": "/api/v1/venues/3289"
+    }
+  },
+  "liveData": {
+    "linescore": {
+      "scheduledInnings": 9,
+      "innings": [],
+      "teams": {
+        "home": {},
+        "away": {}
+      }
+    },
+    "boxscore": {
+      "teams": {
+        "away": {
+          "team": {
+            "id": 144,
+            "name": "Atlanta Braves",
+            "link": "/api/v1/teams/144"
+          },
+          "teamStats": {},
+          "players": {},
+          "batters": [],
+          "pitchers": [],
+          "bench": [],
+          "bullpen": [],
+          "battingOrder": [],
+          "info": []
+        },
+        "home": {
+          "team": {
+            "id": 121,
+            "name": "New York Mets",
+            "link": "/api/v1/teams/121"
+          },
+          "teamStats": {},
+          "players": {},
+          "batters": [],
+          "pitchers": [],
+          "bench": [],
+          "bullpen": [],
+          "battingOrder": [],
+          "info": []
+        }
+      },
+      "officials": []
+    }
+  }
+}

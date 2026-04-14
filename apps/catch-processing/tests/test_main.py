@@ -219,3 +219,14 @@ def test_cli_process_rebuilds_master_schedule(monkeypatch: pytest.MonkeyPatch):
 
     assert result.exit_code == 0
     assert '"games_written": 0' in result.output
+
+def test_write_to_s3_returns_count():
+    """Verify the placeholder write returns the record count."""
+    records = [{"entity_id": "1"}, {"entity_id": "2"}]
+    count = write_to_s3(records, "silver/items/2026-01-15/")
+    assert count == 2
+
+
+def test_shared_boxscore_fixture_is_available(sample_boxscore):
+    """Verify shared boxscore fixtures can be reused from the testing dir."""
+    assert sample_boxscore["gameData"]["game"]["type"] == "R"

@@ -59,3 +59,8 @@ def test_write_to_s3_returns_count():
     records = [{"metric_name": "test", "value": 1.0}]
     count = write_to_s3(records, "gold/served/test-metrics/")
     assert count == 1
+
+
+def test_shared_content_fixture_is_available(sample_content):
+    """Verify shared content fixtures can be reused from the testing dir."""
+    assert sample_content["link"].endswith("/content")

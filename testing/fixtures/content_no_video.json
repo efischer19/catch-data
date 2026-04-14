@@ -1,0 +1,42 @@
+{
+  "copyright": "Copyright 2024 MLB Advanced Media, L.P.  Use of any content on this page acknowledges agreement to the terms posted here http://gdx.mlb.com/components/copyright.txt",
+  "link": "/api/v1/game/752101/content",
+  "editorial": {
+    "recap": {
+      "title": "Recap",
+      "items": [
+        {
+          "type": "article",
+          "headline": "Doubleheader Game 2 recap",
+          "subhead": "Judge goes 2-for-4 with a home run",
+          "seoTitle": "doubleheader-game-2-recap",
+          "body": "Aaron Judge hit a two-run homer to lead the Yankees over the Red Sox at Fenway Park."
+        }
+      ]
+    },
+    "articles": {
+      "title": "Articles",
+      "items": []
+    }
+  },
+  "media": {
+    "epg": [
+      {
+        "title": "MLBTV",
+        "items": [
+          {
+            "type": "video",
+            "title": "Doubleheader Game 2 NYY @ BOS"
+          }
+        ]
+      }
+    ],
+    "freeGame": false,
+    "enhancedGame": false
+  },
+  "highlights": {
+    "highlights": {
+      "items": []
+    }
+  }
+}
