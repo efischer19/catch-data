@@ -1,0 +1,108 @@
+{
+  "copyright": "Copyright 2024 MLB Advanced Media, L.P.  Use of any content on this page acknowledges agreement to the terms posted here http://gdx.mlb.com/components/copyright.txt",
+  "link": "/api/v1/game/752300/content",
+  "editorial": {
+    "recap": {
+      "title": "Recap",
+      "items": [
+        {
+          "type": "article",
+          "headline": "Extra Innings recap",
+          "subhead": "Judge goes 2-for-4 with a home run",
+          "seoTitle": "extra-innings-recap",
+          "body": "Aaron Judge hit a two-run homer to lead the Yankees over the Red Sox at Fenway Park."
+        }
+      ]
+    },
+    "articles": {
+      "title": "Articles",
+      "items": []
+    }
+  },
+  "media": {
+    "epg": [
+      {
+        "title": "MLBTV",
+        "items": [
+          {
+            "type": "video",
+            "title": "Extra Innings NYY @ BOS"
+          }
+        ]
+      },
+      {
+        "title": "Extended Highlights",
+        "items": [
+          {
+            "type": "video",
+            "title": "Extra Innings CG: NYY @ BOS",
+            "description": "Condensed Game: NYY @ BOS 9/18/25",
+            "playbacks": [
+              {
+                "name": "mp4Avc",
+                "url": "https://cuts.diamond.mlb.com/FORGE/2025/2025-09/18/752300/condensed_752300.mp4"
+              },
+              {
+                "name": "FLASH_2500K_1280X720",
+                "url": "https://cuts.diamond.mlb.com/FORGE/2025/2025-09/18/752300/flash_752300_2500k.mp4",
+                "width": "1280",
+                "height": "720"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "freeGame": false,
+    "enhancedGame": false
+  },
+  "highlights": {
+    "highlights": {
+      "items": [
+        {
+          "type": "video",
+          "id": "highlight-001",
+          "title": "Extra Innings: Judge's two-run homer",
+          "description": "Aaron Judge crushes a two-run home run to left field in the 1st inning",
+          "duration": "00:00:32",
+          "image": {
+            "title": "Judge HR",
+            "altText": "Aaron Judge hits a home run",
+            "cuts": {
+              "270x154": {
+                "width": 270,
+                "height": 154,
+                "src": "https://img.mlb.com/judge_hr_270.jpg"
+              }
+            }
+          },
+          "playbacks": [
+            {
+              "name": "mp4Avc",
+              "url": "https://cuts.diamond.mlb.com/FORGE/2025/2025-09/18/752300/judge_hr.mp4"
+            },
+            {
+              "name": "FLASH_1200K_896X504",
+              "url": "https://cuts.diamond.mlb.com/FORGE/2025/2025-09/18/752300/judge_hr_1200k.mp4",
+              "width": "896",
+              "height": "504"
+            }
+          ]
+        },
+        {
+          "type": "video",
+          "id": "highlight-002",
+          "title": "Extra Innings: Devers' solo shot",
+          "description": "Rafael Devers hits a solo home run to right field",
+          "duration": "00:00:28",
+          "playbacks": [
+            {
+              "name": "mp4Avc",
+              "url": "https://cuts.diamond.mlb.com/FORGE/2025/2025-09/18/752300/devers_hr.mp4"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

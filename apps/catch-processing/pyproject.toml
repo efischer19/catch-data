@@ -14,6 +14,7 @@ catch-models = { path = "../../libs/catch-models", develop = true }
 [tool.poetry.group.dev.dependencies]
 pytest = "^9.0"
 ruff = "^0.15"
+moto = "^5.1.22"
 
 [tool.poetry.scripts]
 catch-processing = "app.main:cli"
