@@ -7,7 +7,7 @@
 # This bucket stores all pipeline data using key prefixes to separate the
 # medallion layers (see ADR-018). The recommended key layout is:
 #
-#   s3://catch-data-data-{env}/
+#   s3://catch-data-{env}/
 #   ├── bronze/{source}/{YYYY-MM-DD}/       # Raw ingested data
 #   ├── silver/{entity}/{YYYY-MM-DD}/       # Cleaned & validated data
 #   └── gold/served/{metric_name}/          # Business-ready aggregations
@@ -15,8 +15,12 @@
 # A single bucket with key prefixes is preferred over separate buckets for
 # simplicity. IAM policies can restrict access per prefix if needed.
 # -----------------------------------------------------------------------------
+locals {
+  data_bucket_name = "catch-data-${var.environment}"
+}
+
 resource "aws_s3_bucket" "data" {
-  bucket = "catch-data-data-${var.environment}"
+  bucket = local.data_bucket_name
 
   tags = {
     Project     = var.project_name
@@ -50,6 +54,56 @@ resource "aws_s3_bucket_public_access_block" "data" {
   block_public_policy     = true
   ignore_public_acls      = true
   restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "data" {
+  bucket = aws_s3_bucket.data.id
+
+  rule {
+    id     = "bronze-tiering"
+    status = "Enabled"
+
+    filter {
+      prefix = "bronze/"
+    }
+
+    transition {
+      days          = 90
+      storage_class = "STANDARD_IA"
+    }
+
+    transition {
+      days          = 365
+      storage_class = "DEEP_ARCHIVE"
+    }
+  }
+
+  rule {
+    id     = "silver-tiering"
+    status = "Enabled"
+
+    filter {
+      prefix = "silver/"
+    }
+
+    transition {
+      days          = 90
+      storage_class = "STANDARD_IA"
+    }
+  }
+}
+
+resource "aws_s3_bucket_cors_configuration" "data" {
+  count  = length(var.cors_allowed_origins) > 0 ? 1 : 0
+  bucket = aws_s3_bucket.data.id
+
+  cors_rule {
+    allowed_headers = []
+    allowed_methods = ["GET"]
+    allowed_origins = var.cors_allowed_origins
+    expose_headers  = ["ETag"]
+    max_age_seconds = 3000
+  }
 }
 
 # -----------------------------------------------------------------------------
