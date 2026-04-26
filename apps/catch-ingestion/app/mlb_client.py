@@ -164,12 +164,7 @@ class MlbStatsClient:
         dict
             Raw JSON response from the schedule endpoint.
         """
-        path = (
-            f"/api/v1/schedule"
-            f"?sportId=1&season={year}"
-            f"&startDate={year}-01-01&endDate={year}-12-31"
-            f"&gameType=R&hydrate=linescore"
-        )
+        path = f"/api/v1/schedule?sportId=1&season={year}&hydrate=team,venue"
         return self._get(path)
 
     def get_boxscore(self, game_pk: int) -> dict:

@@ -244,7 +244,9 @@ class TestPublicMethods:
             assert result == expected
             call_url = mock_get.call_args[0][0]
             assert "/api/v1/schedule" in call_url
+            assert "sportId=1" in call_url
             assert "season=2024" in call_url
+            assert "hydrate=team,venue" in call_url
 
     def test_get_boxscore_returns_dict(self):
         """get_boxscore returns the raw JSON dict for a game."""

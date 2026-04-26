@@ -1,146 +1,130 @@
-"""Bronze layer ingestion pipeline — fetch and store raw data.
+"""Bronze layer ingestion pipeline for raw MLB schedule data."""
 
-This module demonstrates the Bronze (ingestion) stage of the medallion
-architecture. It reads data from an external source and writes the raw
-payload to the ``bronze/{source}/{date}/`` prefix in S3.
-
-Data flow::
-
-    External Source  ──►  Validate (minimal)  ──►  S3 bronze/{source}/{date}/
-
-See ADR-018 (Medallion Architecture) for pattern context.
-
-Customize this module:
-    1. Replace the placeholder ``fetch_from_source`` with your real data
-       source (API call, database query, file download, etc.).
-    2. Adjust the BronzeRecord fields in ``libs/catch-models`` to match
-       your raw data schema.
-    3. Replace the ``write_to_s3`` placeholder with real ``boto3`` calls.
-"""
+from __future__ import annotations
 
 import json
 import logging
-import os
+from datetime import date as date_type
+from typing import Any
 
 import click
+import requests
+from catch_models import CatchPaths
+
+from app.mlb_client import MlbStatsClient
 
 logger = logging.getLogger(__name__)
 
 
-# ---------------------------------------------------------------------------
-# Data source — replace with your real data fetching logic
-# ---------------------------------------------------------------------------
-def fetch_from_source() -> list[dict]:
-    """Fetch raw data from an external source.
+def create_s3_client():
+    """Create an S3 client lazily so tests can monkeypatch it easily."""
+    import boto3
 
-    Returns
-    -------
-    list[dict]
-        A list of raw records from the external source.
-
-    Example implementation::
-
-        import boto3
-        import requests
-
-        def fetch_from_source() -> list[dict]:
-            response = requests.get("https://api.example.com/data")
-            response.raise_for_status()
-            return response.json()["results"]
-    """
-    # TODO: Replace with real data source logic.
-    logger.info("Fetching data from source (placeholder)")
-    return [
-        {"id": "1", "value": "example-raw-record"},
-    ]
+    return boto3.client("s3")
 
 
-# ---------------------------------------------------------------------------
-# S3 writer — replace with real boto3 calls
-# ---------------------------------------------------------------------------
-def write_to_s3(records: list[dict], s3_key_prefix: str) -> int:
-    """Write raw records to S3 as newline-delimited JSON.
+def create_mlb_client() -> MlbStatsClient:
+    """Create the MLB Stats API client."""
+    return MlbStatsClient()
 
-    Parameters
-    ----------
-    records : list[dict]
-        Raw records to persist.
-    s3_key_prefix : str
-        The S3 key prefix (e.g., ``"bronze/api-source/2026-01-15/"``).
 
-    Returns
-    -------
-    int
-        Number of records written.
+def current_year() -> int:
+    """Return the current calendar year."""
+    return date_type.today().year
 
-    Example implementation::
 
-        import boto3
-        import os
+def schedule_game_count(schedule_payload: dict[str, Any]) -> int:
+    """Count games in a raw schedule payload."""
+    total_games = schedule_payload.get("totalGames")
+    if isinstance(total_games, int):
+        return total_games
 
-        def write_to_s3(records: list[dict], s3_key_prefix: str) -> int:
-            s3 = boto3.client("s3")
-            bucket = os.environ["S3_BUCKET_NAME"]
-            key = f"{s3_key_prefix}data.jsonl"
-            body = "\\n".join(json.dumps(r) for r in records)
-            s3.put_object(Bucket=bucket, Key=key, Body=body)
-            return len(records)
-    """
-    # TODO: Replace with real S3 write logic using boto3.
-    logger.info(
-        "Would write %d records to %s (placeholder)", len(records), s3_key_prefix
+    return sum(
+        len(schedule_date.get("games", []))
+        for schedule_date in schedule_payload.get("dates", [])
+        if isinstance(schedule_date, dict)
     )
-    return len(records)
 
 
-# ---------------------------------------------------------------------------
-# CLI entry point
-# ---------------------------------------------------------------------------
+def upload_schedule_to_s3(
+    s3_client: Any,
+    bucket: str,
+    year: int,
+    schedule_payload: dict[str, Any],
+) -> tuple[str, int, int]:
+    """Upload a season schedule JSON payload to the Bronze S3 layer."""
+    key = CatchPaths.bronze_schedule_key(year)
+    body = json.dumps(schedule_payload).encode("utf-8")
+    game_count = schedule_game_count(schedule_payload)
+
+    s3_client.put_object(
+        Bucket=bucket,
+        Key=key,
+        Body=body,
+        ContentType="application/json",
+    )
+
+    return key, len(body), game_count
+
+
 @click.group()
 def cli():
     """Bronze layer ingestion pipeline CLI."""
+    logging.basicConfig(level=logging.INFO)
 
 
-@cli.command()
-@click.option("--source", default="api-source", help="Name of the data source.")
+@cli.command("ingest-schedule")
 @click.option(
-    "--date",
-    "processing_date",
-    default=None,
-    help="Processing date (YYYY-MM-DD). Defaults to today.",
+    "--year",
+    type=int,
+    default=current_year,
+    show_default="current year",
+    help="Season year to ingest.",
 )
-def ingest(source: str, processing_date: str | None):
-    """Ingest raw data from an external source into the bronze layer.
+@click.option(
+    "--bucket",
+    default=None,
+    envvar="S3_BUCKET_NAME",
+    help="Bronze S3 bucket for raw schedule uploads.",
+)
+def ingest_schedule(year: int, bucket: str | None):
+    """Fetch a full MLB season schedule and upload the raw JSON to S3."""
+    if not bucket:
+        raise click.ClickException("Provide --bucket or set S3_BUCKET_NAME")
 
-    Fetches data from the configured source, wraps each record as a
-    BronzeRecord, and writes the results to S3 under the bronze prefix.
-    """
-    from datetime import date as date_type
+    try:
+        schedule_payload = create_mlb_client().get_schedule(year)
+    except requests.RequestException as error:
+        logger.exception("Failed to fetch schedule for year=%s", year)
+        raise click.ClickException(
+            f"Failed to fetch schedule for year={year}"
+        ) from error
 
-    from catch_models import BronzeRecord, MedallionPaths
-
-    processing = (
-        date_type.fromisoformat(processing_date)
-        if processing_date
-        else date_type.today()
+    output_key, file_size, game_count = upload_schedule_to_s3(
+        create_s3_client(),
+        bucket,
+        year,
+        schedule_payload,
+    )
+    logger.info(
+        "Uploaded schedule to s3://%s/%s file_size=%d games=%d",
+        bucket,
+        output_key,
+        file_size,
+        game_count,
     )
 
-    click.echo(f"Ingesting from source={source} for date={processing}")
-
-    raw_records = fetch_from_source()
-
-    bronze_records = [
-        BronzeRecord(source=source, raw_data=record) for record in raw_records
-    ]
-    click.echo(f"Validated {len(bronze_records)} bronze records")
-
-    paths = MedallionPaths(os.environ.get("S3_BUCKET_NAME", "catch-data-data-dev"))
-    key_prefix = paths.bronze(source, processing)
-
-    serialized = [json.loads(record.model_dump_json()) for record in bronze_records]
-    count = write_to_s3(serialized, key_prefix)
-
-    click.echo(f"Wrote {count} records to {key_prefix}")
+    click.echo(
+        json.dumps(
+            {
+                "bucket": bucket,
+                "file_size": file_size,
+                "games_found": game_count,
+                "output_key": output_key,
+                "year": year,
+            },
+        ),
+    )
 
 
 if __name__ == "__main__":
