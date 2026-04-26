@@ -8,6 +8,7 @@ from datetime import date
 from io import BytesIO
 from unittest.mock import MagicMock
 
+import click
 import pytest
 import requests
 from botocore.exceptions import ClientError
@@ -205,6 +206,97 @@ def test_completed_game_pks_for_date_filters_to_final_games():
     )
 
     assert game_pks == [752400, 752401]
+
+
+def test_default_target_date_returns_yesterday(monkeypatch: pytest.MonkeyPatch):
+    """The default target date should be yesterday."""
+
+    class _FakeDate:
+        @staticmethod
+        def today() -> date:
+            return date(2027, 1, 2)
+
+    monkeypatch.setattr(main, "date", _FakeDate)
+
+    assert main.default_target_date() == date(2027, 1, 1)
+
+
+def test_parse_target_date_rejects_invalid_values():
+    """Invalid date strings should raise a Click bad-parameter error."""
+    with pytest.raises(click.BadParameter, match="Use YYYY-MM-DD format"):
+        main.parse_target_date("2025-13-45")
+
+
+def test_read_json_from_s3_decodes_body():
+    """The S3 helper should decode JSON bytes into a Python dict."""
+    fake_s3_client = MagicMock()
+    fake_s3_client.get_object.return_value = {
+        "Body": BytesIO(b'{"ok": true, "count": 2}')
+    }
+
+    payload = main.read_json_from_s3(fake_s3_client, TEST_BUCKET, "bronze/test.json")
+
+    assert payload == {"ok": True, "count": 2}
+    assert fake_s3_client.get_object.call_args.kwargs == {
+        "Bucket": TEST_BUCKET,
+        "Key": "bronze/test.json",
+    }
+
+
+def test_s3_key_exists_reraises_non_missing_errors():
+    """Unexpected S3 HEAD errors should be surfaced."""
+    fake_s3_client = MagicMock()
+    fake_s3_client.head_object.side_effect = ClientError(
+        {"Error": {"Code": "500", "Message": "boom"}},
+        "HeadObject",
+    )
+
+    with pytest.raises(ClientError, match="boom"):
+        main.s3_key_exists(fake_s3_client, TEST_BUCKET, "bronze/test.json")
+
+
+def test_upload_json_to_s3_writes_json_bytes():
+    """Raw JSON uploads should be written with an application/json content type."""
+    fake_s3_client = MagicMock()
+
+    file_size = main.upload_json_to_s3(
+        fake_s3_client,
+        TEST_BUCKET,
+        "bronze/test.json",
+        {"gamePk": 752400},
+    )
+
+    assert file_size > 0
+    assert fake_s3_client.put_object.call_args.kwargs == {
+        "Bucket": TEST_BUCKET,
+        "Key": "bronze/test.json",
+        "Body": b'{"gamePk": 752400}',
+        "ContentType": "application/json",
+    }
+
+
+@pytest.mark.parametrize(
+    ("schedule_game", "expected"),
+    [
+        (_schedule_game(752400), True),
+        (
+            {
+                "gamePk": 752401,
+                "status": {
+                    "abstractGameState": "Live",
+                    "detailedState": "Final",
+                },
+            },
+            True,
+        ),
+        (_schedule_game(752402, detailed_state="Postponed"), False),
+        ({"gamePk": 752403}, False),
+        ({"gamePk": 752404, "status": "Final"}, False),
+    ],
+)
+def test_is_final_game(schedule_game: dict, expected: bool):
+    """The final-game helper should only accept valid Final status payloads."""
+    assert main.is_final_game(schedule_game) is expected
 
 
 def test_cli_ingest_games_uploads_missing_objects_and_skips_existing(
