@@ -65,7 +65,7 @@ def test_cli_ingest_schedule_defaults_to_current_year(
     fake_mlb_client.get_schedule.return_value = sample_schedule
     runner = CliRunner()
 
-    monkeypatch.setattr(main, "date_type", _FakeDate)
+    monkeypatch.setattr(main, "date", _FakeDate)
     monkeypatch.setattr(main, "create_mlb_client", lambda: fake_mlb_client)
     monkeypatch.setattr(main, "create_s3_client", lambda: MagicMock())
 

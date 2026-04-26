@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import date as date_type
+from datetime import date
 from typing import Any
 
 import click
@@ -30,7 +30,7 @@ def create_mlb_client() -> MlbStatsClient:
 
 def current_year() -> int:
     """Return the current calendar year."""
-    return date_type.today().year
+    return date.today().year
 
 
 def schedule_game_count(schedule_payload: dict[str, Any]) -> int:
