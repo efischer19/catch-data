@@ -4,12 +4,12 @@
 
 ## Purpose
 
-This application demonstrates the **Bronze** (ingestion) stage of the
+This application implements the **Bronze** (ingestion) stage of the
 [medallion architecture](../../meta/adr/ADR-018-medallion_architecture.md).
-It fetches raw data from an external source and writes it to S3 with minimal
-transformation.
+It fetches the current MLB season schedule from the MLB Stats API and writes
+the raw JSON response to S3 with minimal transformation.
 
-**Data flow:** External Source → Validate (minimal) → S3 `bronze/{source}/{date}/`
+**Data flow:** MLB Stats API → Preserve raw JSON → S3 `bronze/schedule_{year}.json`
 
 ## Installation
 
@@ -21,15 +21,14 @@ poetry install
 ## Usage
 
 ```bash
-# Run the ingestion pipeline
-poetry run catch-ingestion ingest --source api-source --date 2026-01-15
+# Ingest the current season schedule
+poetry run catch-ingestion ingest-schedule --bucket catch-data-data-dev
+
+# Ingest a specific season schedule
+poetry run catch-ingestion ingest-schedule \
+    --year 2026 \
+    --bucket catch-data-data-dev
 ```
-
-## Customization
-
-1. Replace `fetch_from_source()` in `app/main.py` with your real data source
-2. Update `BronzeRecord` in `libs/catch-models/` with your raw data fields
-3. Replace `write_to_s3()` with real `boto3` calls
 
 ## Development
 
@@ -47,3 +46,5 @@ poetry run ruff format --check .
   S3 path conventions (path dependency)
 * **[Click](https://click.palletsprojects.com/)** — CLI framework
   (see [ADR-011](../../meta/adr/ADR-011-use_click.md))
+* **[boto3](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html)** —
+  AWS SDK used for Bronze S3 uploads

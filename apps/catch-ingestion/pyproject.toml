@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "catch-ingestion"
 version = "0.1.0"
-description = "Bronze layer — ingest raw data from external sources into S3"
+description = "Bronze layer — ingest raw MLB schedule data into S3"
 authors = ["efischer19"]
 readme = "README.md"
 packages = [{include = "app"}]
@@ -9,6 +9,7 @@ packages = [{include = "app"}]
 [tool.poetry.dependencies]
 python = "^3.12"
 click = "^8.3"
+boto3 = "^1.42.88"
 catch-models = { path = "../../libs/catch-models", develop = true }
 requests = "^2.32"
 tenacity = "^9.1"
@@ -37,3 +38,6 @@ quote-style = "double"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+    "integration: tests that exercise AWS-compatible integrations",
+]

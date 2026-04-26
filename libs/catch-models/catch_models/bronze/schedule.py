@@ -1,6 +1,6 @@
 """Pydantic models for the MLB Stats API schedule endpoint response.
 
-Endpoint: ``/api/v1/schedule?sportId=1&season={year}&hydrate=linescore``
+Endpoint: ``/api/v1/schedule?sportId=1&season={year}&hydrate=team,venue``
 
 These Bronze-layer models validate and type the raw JSON without
 transforming it.  Strict mode is enabled and extra fields are forbidden
