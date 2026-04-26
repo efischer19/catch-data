@@ -175,6 +175,11 @@ def _mock_schedule_read(fake_s3_client: MagicMock, schedule_payload: dict):
     }
 
 
+def _raise_missing_head_object(**kwargs):
+    """Raise a missing-object error for a fake S3 HEAD request."""
+    raise _missing_s3_key_error(kwargs["Key"])
+
+
 def test_completed_game_pks_for_date_filters_to_final_games():
     """Only final games for the requested date should be returned."""
     schedule_payload = {
@@ -336,9 +341,7 @@ def test_cli_ingest_games_handles_content_404_as_warning(
         fake_s3_client,
         _schedule_payload(schedule_date="2025-06-15", games=[_schedule_game(752400)]),
     )
-    fake_s3_client.head_object.side_effect = lambda **kwargs: (_ for _ in ()).throw(
-        _missing_s3_key_error(kwargs["Key"])
-    )
+    fake_s3_client.head_object.side_effect = _raise_missing_head_object
 
     monkeypatch.setattr(main, "create_mlb_client", lambda: fake_mlb_client)
     monkeypatch.setattr(main, "create_s3_client", lambda: fake_s3_client)
@@ -389,9 +392,7 @@ def test_cli_ingest_games_continues_after_single_game_error(
             games=[_schedule_game(752400), _schedule_game(752401)],
         ),
     )
-    fake_s3_client.head_object.side_effect = lambda **kwargs: (_ for _ in ()).throw(
-        _missing_s3_key_error(kwargs["Key"])
-    )
+    fake_s3_client.head_object.side_effect = _raise_missing_head_object
 
     monkeypatch.setattr(main, "create_mlb_client", lambda: fake_mlb_client)
     monkeypatch.setattr(main, "create_s3_client", lambda: fake_s3_client)
