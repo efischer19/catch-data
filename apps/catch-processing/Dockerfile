@@ -33,7 +33,7 @@ RUN cd apps/catch-processing \
 
 # Pre-build wheels for reproducible, offline installation in the runtime stage
 RUN pip wheel --no-cache-dir --wheel-dir /wheels -r /tmp/app-requirements.txt
-RUN pip wheel --no-cache-dir --wheel-dir /wheels ./libs/catch-models
+RUN pip wheel --no-cache-dir --no-deps --wheel-dir /wheels ./libs/catch-models
 
 # ── Stage 2: Lambda Runtime ─────────────────────────────────────────────────
 FROM public.ecr.aws/lambda/python:3.12
