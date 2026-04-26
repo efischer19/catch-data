@@ -7,9 +7,11 @@
 This application implements the **Bronze** (ingestion) stage of the
 [medallion architecture](../../meta/adr/ADR-018-medallion_architecture.md).
 It fetches the current MLB season schedule from the MLB Stats API and writes
-the raw JSON response to S3 with minimal transformation.
+the raw JSON response to S3 with minimal transformation. It also ingests raw
+boxscore and content JSON for recently completed games using the Bronze
+schedule file as the source of truth.
 
-**Data flow:** MLB Stats API → Preserve raw JSON → S3 `bronze/schedule_{year}.json`
+**Data flow:** MLB Stats API → Preserve raw JSON → S3 Bronze objects
 
 ## Installation
 
@@ -27,6 +29,14 @@ poetry run catch-ingestion ingest-schedule --bucket catch-data-data-dev
 # Ingest a specific season schedule
 poetry run catch-ingestion ingest-schedule \
     --year 2026 \
+    --bucket catch-data-data-dev
+
+# Ingest yesterday's completed games using the Bronze schedule file
+poetry run catch-ingestion ingest-games --bucket catch-data-data-dev
+
+# Re-run completed-game ingestion for a specific date
+poetry run catch-ingestion ingest-games \
+    --date 2025-06-15 \
     --bucket catch-data-data-dev
 ```
 
