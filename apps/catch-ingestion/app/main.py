@@ -243,8 +243,10 @@ def ingest_completed_games(
             games_uploaded += 1
 
     logger.info(
-        "Finished ingest-games target_date=%s total_games=%d games_to_process=%d "
-        "games_skipped=%d games_uploaded=%d",
+        (
+            "Finished ingest-games target_date=%s total_games=%d "
+            "games_to_process=%d games_skipped=%d games_uploaded=%d"
+        ),
         target_date.isoformat(),
         len(game_pks),
         games_to_process,

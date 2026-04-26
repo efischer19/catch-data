@@ -499,6 +499,7 @@ def test_cli_ingest_games_continues_after_single_game_error(
     uploaded_keys = [
         call.kwargs["Key"] for call in fake_s3_client.put_object.call_args_list
     ]
+    assert CatchPaths.bronze_content_key(752400) in uploaded_keys
     assert CatchPaths.bronze_boxscore_key(752401) in uploaded_keys
     assert CatchPaths.bronze_content_key(752401) in uploaded_keys
 
