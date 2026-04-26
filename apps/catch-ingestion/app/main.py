@@ -217,17 +217,19 @@ def ingest_completed_games(
                     content_key,
                     content_payload,
                 )
-            except requests.HTTPError as error:
+            except requests.RequestException as error:
                 response = error.response
-                if response is not None and response.status_code == 404:
+                if (
+                    isinstance(error, requests.HTTPError)
+                    and response is not None
+                    and response.status_code == 404
+                ):
                     logger.warning(
                         "Content not found for game_pk=%s; skipping content upload",
                         game_pk,
                     )
                 else:
                     logger.exception("Failed to ingest content for game_pk=%s", game_pk)
-            except requests.RequestException:
-                logger.exception("Failed to ingest content for game_pk=%s", game_pk)
             else:
                 contents_uploaded += 1
                 uploaded_for_game = True

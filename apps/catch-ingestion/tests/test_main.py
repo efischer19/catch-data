@@ -457,11 +457,11 @@ def test_cli_ingest_games_handles_content_404_as_warning(
     assert "Content not found for game_pk=752400" in caplog.text
 
 
-def test_cli_ingest_games_continues_after_single_game_error(
+def test_cli_ingest_games_continues_after_boxscore_error_and_uploads_content(
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
 ):
-    """A failed game fetch should be logged while later games still process."""
+    """A boxscore failure should still allow content upload and later games."""
     fake_mlb_client = MagicMock()
     fake_s3_client = MagicMock()
     runner = CliRunner()
