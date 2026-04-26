@@ -106,6 +106,14 @@ def create_s3_client():
     return boto3.client("s3")
 
 
+def write_to_s3(records: list[dict], s3_key_prefix: str) -> int:
+    """Retain the template-style S3 writer used by the legacy placeholder test."""
+    logger.info(
+        "Would write %d records to %s (placeholder)", len(records), s3_key_prefix
+    )
+    return len(records)
+
+
 def current_utc() -> datetime:
     """Return the current UTC timestamp."""
     return datetime.now(UTC)
