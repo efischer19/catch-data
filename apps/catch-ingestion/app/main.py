@@ -147,11 +147,11 @@ def ingest_completed_games(
     schedule_payload = read_json_from_s3(s3_client, bucket, schedule_key)
     game_pks = completed_game_pks_for_date(schedule_payload, target_date)
 
-    game_plan: list[tuple[int, bool, bool]] = []
+    game_ingestion_status: list[tuple[int, bool, bool]] = []
     for game_pk in game_pks:
         boxscore_key = CatchPaths.bronze_boxscore_key(game_pk)
         content_key = CatchPaths.bronze_content_key(game_pk)
-        game_plan.append(
+        game_ingestion_status.append(
             (
                 game_pk,
                 s3_key_exists(s3_client, bucket, boxscore_key),
@@ -161,10 +161,10 @@ def ingest_completed_games(
 
     games_skipped = sum(
         1
-        for _, boxscore_exists, content_exists in game_plan
+        for _, boxscore_exists, content_exists in game_ingestion_status
         if boxscore_exists and content_exists
     )
-    games_to_process = len(game_plan) - games_skipped
+    games_to_process = len(game_ingestion_status) - games_skipped
     boxscores_uploaded = 0
     contents_uploaded = 0
     games_uploaded = 0
@@ -177,12 +177,12 @@ def ingest_completed_games(
         games_skipped,
     )
 
-    for game_pk, boxscore_exists, content_exists in game_plan:
+    for game_pk, boxscore_exists, content_exists in game_ingestion_status:
         if boxscore_exists and content_exists:
             logger.info("Skipping game_pk=%s; Bronze objects already exist", game_pk)
             continue
 
-        uploaded_for_game = False
+        any_upload_succeeded = False
 
         if not boxscore_exists:
             boxscore_key = CatchPaths.bronze_boxscore_key(game_pk)
@@ -198,7 +198,7 @@ def ingest_completed_games(
                 logger.exception("Failed to ingest boxscore for game_pk=%s", game_pk)
             else:
                 boxscores_uploaded += 1
-                uploaded_for_game = True
+                any_upload_succeeded = True
                 logger.info(
                     "Uploaded boxscore to s3://%s/%s file_size=%d game_pk=%s",
                     bucket,
@@ -232,7 +232,7 @@ def ingest_completed_games(
                     logger.exception("Failed to ingest content for game_pk=%s", game_pk)
             else:
                 contents_uploaded += 1
-                uploaded_for_game = True
+                any_upload_succeeded = True
                 logger.info(
                     "Uploaded content to s3://%s/%s file_size=%d game_pk=%s",
                     bucket,
@@ -241,7 +241,7 @@ def ingest_completed_games(
                     game_pk,
                 )
 
-        if uploaded_for_game:
+        if any_upload_succeeded:
             games_uploaded += 1
 
     logger.info(

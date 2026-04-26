@@ -133,7 +133,7 @@ def test_shared_schedule_fixture_is_available(sample_schedule):
     assert sample_schedule["totalGames"] >= 5
 
 
-def _schedule_payload(*, schedule_date: str, games: list[dict]) -> dict:
+def _build_schedule_payload(*, schedule_date: str, games: list[dict]) -> dict:
     """Build a minimal schedule payload for one official date."""
     return {
         "dates": [
@@ -145,7 +145,7 @@ def _schedule_payload(*, schedule_date: str, games: list[dict]) -> dict:
     }
 
 
-def _schedule_game(game_pk: int, detailed_state: str = "Final") -> dict:
+def _build_schedule_game(game_pk: int, detailed_state: str = "Final") -> dict:
     """Build a minimal raw schedule game payload."""
     return {
         "gamePk": game_pk,
@@ -188,14 +188,14 @@ def test_completed_game_pks_for_date_filters_to_final_games():
             {
                 "date": "2025-06-15",
                 "games": [
-                    _schedule_game(752400),
-                    _schedule_game(752401),
-                    _schedule_game(752402, detailed_state="Postponed"),
+                    _build_schedule_game(752400),
+                    _build_schedule_game(752401),
+                    _build_schedule_game(752402, detailed_state="Postponed"),
                 ],
             },
             {
                 "date": "2025-06-16",
-                "games": [_schedule_game(752500)],
+                "games": [_build_schedule_game(752500)],
             },
         ]
     }
@@ -278,7 +278,7 @@ def test_upload_json_to_s3_writes_json_bytes():
 @pytest.mark.parametrize(
     ("schedule_game", "expected"),
     [
-        (_schedule_game(752400), True),
+        (_build_schedule_game(752400), True),
         (
             {
                 "gamePk": 752401,
@@ -289,7 +289,7 @@ def test_upload_json_to_s3_writes_json_bytes():
             },
             True,
         ),
-        (_schedule_game(752402, detailed_state="Postponed"), False),
+        (_build_schedule_game(752402, detailed_state="Postponed"), False),
         ({"gamePk": 752403}, False),
         ({"gamePk": 752404, "status": "Final"}, False),
     ],
@@ -315,12 +315,12 @@ def test_cli_ingest_games_uploads_missing_objects_and_skips_existing(
     }
     fake_s3_client = MagicMock()
     runner = CliRunner()
-    schedule_payload = _schedule_payload(
+    schedule_payload = _build_schedule_payload(
         schedule_date="2025-06-15",
         games=[
-            _schedule_game(752400),
-            _schedule_game(752401),
-            _schedule_game(752402, detailed_state="Postponed"),
+            _build_schedule_game(752400),
+            _build_schedule_game(752401),
+            _build_schedule_game(752402, detailed_state="Postponed"),
         ],
     )
     existing_keys = {
@@ -396,7 +396,7 @@ def test_cli_ingest_games_defaults_to_yesterday(
     fake_s3_client = MagicMock()
     _mock_schedule_read(
         fake_s3_client,
-        _schedule_payload(schedule_date="2027-01-01", games=[]),
+        _build_schedule_payload(schedule_date="2027-01-01", games=[]),
     )
     runner = CliRunner()
 
@@ -431,7 +431,10 @@ def test_cli_ingest_games_handles_content_404_as_warning(
 
     _mock_schedule_read(
         fake_s3_client,
-        _schedule_payload(schedule_date="2025-06-15", games=[_schedule_game(752400)]),
+        _build_schedule_payload(
+            schedule_date="2025-06-15",
+            games=[_build_schedule_game(752400)],
+        ),
     )
     fake_s3_client.head_object.side_effect = _raise_missing_head_object
 
@@ -479,9 +482,9 @@ def test_cli_ingest_games_continues_after_boxscore_error_and_uploads_content(
 
     _mock_schedule_read(
         fake_s3_client,
-        _schedule_payload(
+        _build_schedule_payload(
             schedule_date="2025-06-15",
-            games=[_schedule_game(752400), _schedule_game(752401)],
+            games=[_build_schedule_game(752400), _build_schedule_game(752401)],
         ),
     )
     fake_s3_client.head_object.side_effect = _raise_missing_head_object
