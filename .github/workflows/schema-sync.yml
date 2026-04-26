@@ -72,7 +72,7 @@ jobs:
       - name: Check catch-app repository and open sync PRs
         id: target
         if: steps.auth.outputs.ready == 'true'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           TARGET_REPO: ${{ steps.context.outputs.target_repo }}
           SHA_SHORT: ${{ steps.context.outputs.sha_short }}
@@ -181,7 +181,7 @@ jobs:
 
       - name: Create or update catch-app schema PR
         if: steps.auth.outputs.ready == 'true' && steps.target.outputs.exists == 'true' && (steps.sync.outputs.changed == 'true' || steps.target.outputs.pr_number != '')
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         env:
           TARGET_REPO: ${{ steps.context.outputs.target_repo }}
           BRANCH_NAME: ${{ steps.target.outputs.branch_name }}
