@@ -1,11 +1,11 @@
-"""Tests for the catch-ingestion Bronze schedule CLI."""
+"""Tests for the catch-ingestion Bronze ingestion CLI."""
 
 from __future__ import annotations
 
 import json
 import logging
-from io import BytesIO
 from datetime import date
+from io import BytesIO
 from unittest.mock import MagicMock
 
 import pytest
@@ -208,12 +208,14 @@ def test_cli_ingest_games_uploads_missing_objects_and_skips_existing(
 ):
     """The CLI should upload missing game JSON and skip fully ingested games."""
     fake_mlb_client = MagicMock()
-    fake_mlb_client.get_boxscore.side_effect = (
-        lambda game_pk: {"gamePk": game_pk, "endpoint": "boxscore"}
-    )
-    fake_mlb_client.get_content.side_effect = (
-        lambda game_pk: {"gamePk": game_pk, "endpoint": "content"}
-    )
+    fake_mlb_client.get_boxscore.side_effect = lambda game_pk: {
+        "gamePk": game_pk,
+        "endpoint": "boxscore",
+    }
+    fake_mlb_client.get_content.side_effect = lambda game_pk: {
+        "gamePk": game_pk,
+        "endpoint": "content",
+    }
     fake_s3_client = MagicMock()
     runner = CliRunner()
     schedule_payload = _schedule_payload(
@@ -255,7 +257,9 @@ def test_cli_ingest_games_uploads_missing_objects_and_skips_existing(
     fake_mlb_client.get_boxscore.assert_called_once_with(752400)
     fake_mlb_client.get_content.assert_called_once_with(752400)
 
-    uploaded_keys = [call.kwargs["Key"] for call in fake_s3_client.put_object.call_args_list]
+    uploaded_keys = [
+        call.kwargs["Key"] for call in fake_s3_client.put_object.call_args_list
+    ]
     assert uploaded_keys == [
         CatchPaths.bronze_boxscore_key(752400),
         CatchPaths.bronze_content_key(752400),
@@ -346,7 +350,9 @@ def test_cli_ingest_games_handles_content_404_as_warning(
     )
 
     assert result.exit_code == 0
-    uploaded_keys = [call.kwargs["Key"] for call in fake_s3_client.put_object.call_args_list]
+    uploaded_keys = [
+        call.kwargs["Key"] for call in fake_s3_client.put_object.call_args_list
+    ]
     assert uploaded_keys == [CatchPaths.bronze_boxscore_key(752400)]
 
     summary = json.loads(result.output)
@@ -371,9 +377,10 @@ def test_cli_ingest_games_continues_after_single_game_error(
         return {"gamePk": game_pk, "endpoint": "boxscore"}
 
     fake_mlb_client.get_boxscore.side_effect = _get_boxscore
-    fake_mlb_client.get_content.side_effect = (
-        lambda game_pk: {"gamePk": game_pk, "endpoint": "content"}
-    )
+    fake_mlb_client.get_content.side_effect = lambda game_pk: {
+        "gamePk": game_pk,
+        "endpoint": "content",
+    }
 
     _mock_schedule_read(
         fake_s3_client,
@@ -396,7 +403,9 @@ def test_cli_ingest_games_continues_after_single_game_error(
     )
 
     assert result.exit_code == 0
-    uploaded_keys = [call.kwargs["Key"] for call in fake_s3_client.put_object.call_args_list]
+    uploaded_keys = [
+        call.kwargs["Key"] for call in fake_s3_client.put_object.call_args_list
+    ]
     assert CatchPaths.bronze_boxscore_key(752401) in uploaded_keys
     assert CatchPaths.bronze_content_key(752401) in uploaded_keys
 

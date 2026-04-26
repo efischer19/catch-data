@@ -149,11 +149,13 @@ def ingest_completed_games(
 
     game_plan: list[tuple[int, bool, bool]] = []
     for game_pk in game_pks:
+        boxscore_key = CatchPaths.bronze_boxscore_key(game_pk)
+        content_key = CatchPaths.bronze_content_key(game_pk)
         game_plan.append(
             (
                 game_pk,
-                s3_key_exists(s3_client, bucket, CatchPaths.bronze_boxscore_key(game_pk)),
-                s3_key_exists(s3_client, bucket, CatchPaths.bronze_content_key(game_pk)),
+                s3_key_exists(s3_client, bucket, boxscore_key),
+                s3_key_exists(s3_client, bucket, content_key),
             ),
         )
 
