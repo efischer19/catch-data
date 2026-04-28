@@ -6,6 +6,7 @@ import json
 import logging
 from datetime import date
 from io import BytesIO
+from pathlib import Path
 from unittest.mock import MagicMock
 
 import click
@@ -302,6 +303,7 @@ def test_is_final_game(schedule_game: dict, expected: bool):
 def test_cli_ingest_games_uploads_missing_objects_and_skips_existing(
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
+    tmp_path: Path,
 ):
     """The CLI should upload missing game JSON and skip fully ingested games."""
     fake_mlb_client = MagicMock()
@@ -339,6 +341,7 @@ def test_cli_ingest_games_uploads_missing_objects_and_skips_existing(
 
     monkeypatch.setattr(main, "create_mlb_client", lambda: fake_mlb_client)
     monkeypatch.setattr(main, "create_s3_client", lambda: fake_s3_client)
+    monkeypatch.chdir(tmp_path)
     caplog.set_level(logging.INFO, logger="app.main")
 
     result = runner.invoke(
@@ -365,22 +368,35 @@ def test_cli_ingest_games_uploads_missing_objects_and_skips_existing(
     summary = json.loads(result.output)
     assert summary == {
         "bucket": TEST_BUCKET,
+        "correlation_id": "2025-06-15",
         "date": "2025-06-15",
+        "dry_run": False,
+        "failed_game_pks": [],
+        "failed_games_file": "failed_games.json",
+        "games_failed": 0,
         "games_found": 2,
+        "games_processed": 1,
         "games_skipped": 1,
+        "games_succeeded": 1,
         "games_to_process": 1,
         "games_uploaded": 1,
         "boxscores_uploaded": 1,
         "contents_uploaded": 1,
         "schedule_key": CatchPaths.bronze_schedule_key(2025),
     }
-    assert "games_to_process=1" in caplog.text
-    assert "games_skipped=1" in caplog.text
-    assert "games_uploaded=1" in caplog.text
+    assert json.loads(Path("failed_games.json").read_text(encoding="utf-8")) == []
+    assert any(
+        record.message == "Ingestion run summary"
+        and record.games_processed == 1
+        and record.games_skipped == 1
+        and record.games_succeeded == 1
+        for record in caplog.records
+    )
 
 
 def test_cli_ingest_games_defaults_to_yesterday(
     monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
 ):
     """Omitting --date should ingest yesterday's completed games."""
 
@@ -403,6 +419,7 @@ def test_cli_ingest_games_defaults_to_yesterday(
     monkeypatch.setattr(main, "date", _FakeDate)
     monkeypatch.setattr(main, "create_mlb_client", lambda: MagicMock())
     monkeypatch.setattr(main, "create_s3_client", lambda: fake_s3_client)
+    monkeypatch.chdir(tmp_path)
 
     result = runner.invoke(
         main.cli,
@@ -418,6 +435,7 @@ def test_cli_ingest_games_defaults_to_yesterday(
 def test_cli_ingest_games_handles_content_404_as_warning(
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
+    tmp_path: Path,
 ):
     """Content 404s should warn and continue without failing the command."""
     fake_mlb_client = MagicMock()
@@ -440,6 +458,7 @@ def test_cli_ingest_games_handles_content_404_as_warning(
 
     monkeypatch.setattr(main, "create_mlb_client", lambda: fake_mlb_client)
     monkeypatch.setattr(main, "create_s3_client", lambda: fake_s3_client)
+    monkeypatch.chdir(tmp_path)
     caplog.set_level(logging.INFO, logger="app.main")
 
     result = runner.invoke(
@@ -454,15 +473,17 @@ def test_cli_ingest_games_handles_content_404_as_warning(
     assert uploaded_keys == [CatchPaths.bronze_boxscore_key(752400)]
 
     summary = json.loads(result.output)
-    assert summary["games_uploaded"] == 1
+    assert summary["games_failed"] == 0
+    assert summary["games_succeeded"] == 1
     assert summary["boxscores_uploaded"] == 1
     assert summary["contents_uploaded"] == 0
-    assert "Content not found for game_pk=752400" in caplog.text
+    assert "Content not found for game; skipping content upload" in caplog.text
 
 
 def test_cli_ingest_games_continues_after_boxscore_error_and_uploads_content(
     monkeypatch: pytest.MonkeyPatch,
     caplog: pytest.LogCaptureFixture,
+    tmp_path: Path,
 ):
     """A boxscore failure should still allow content upload and later games."""
     fake_mlb_client = MagicMock()
@@ -491,6 +512,7 @@ def test_cli_ingest_games_continues_after_boxscore_error_and_uploads_content(
 
     monkeypatch.setattr(main, "create_mlb_client", lambda: fake_mlb_client)
     monkeypatch.setattr(main, "create_s3_client", lambda: fake_s3_client)
+    monkeypatch.chdir(tmp_path)
     caplog.set_level(logging.INFO, logger="app.main")
 
     result = runner.invoke(
@@ -498,7 +520,7 @@ def test_cli_ingest_games_continues_after_boxscore_error_and_uploads_content(
         ["ingest-games", "--date", "2025-06-15", "--bucket", TEST_BUCKET],
     )
 
-    assert result.exit_code == 0
+    assert result.exit_code == 1
     uploaded_keys = [
         call.kwargs["Key"] for call in fake_s3_client.put_object.call_args_list
     ]
@@ -508,5 +530,101 @@ def test_cli_ingest_games_continues_after_boxscore_error_and_uploads_content(
 
     summary = json.loads(result.output)
     assert summary["games_found"] == 2
-    assert summary["games_uploaded"] == 2
-    assert "Failed to ingest boxscore for game_pk=752400" in caplog.text
+    assert summary["games_processed"] == 2
+    assert summary["games_succeeded"] == 1
+    assert summary["games_failed"] == 1
+    assert summary["failed_game_pks"] == [752400]
+    assert json.loads(Path("failed_games.json").read_text(encoding="utf-8")) == [752400]
+    assert any(
+        record.message == "Failed to ingest game"
+        and record.gamePk == 752400
+        and record.error_type == "Timeout"
+        and record.attempt_count == 1
+        for record in caplog.records
+    )
+
+
+def test_cli_ingest_games_supports_dry_run(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+    tmp_path: Path,
+):
+    """Dry-run mode should avoid API calls and S3 writes."""
+    fake_mlb_client = MagicMock()
+    fake_s3_client = MagicMock()
+    runner = CliRunner()
+
+    _mock_schedule_read(
+        fake_s3_client,
+        _build_schedule_payload(
+            schedule_date="2025-06-15",
+            games=[_build_schedule_game(752400)],
+        ),
+    )
+    fake_s3_client.head_object.side_effect = _raise_missing_head_object
+
+    monkeypatch.setattr(main, "create_mlb_client", lambda: fake_mlb_client)
+    monkeypatch.setattr(main, "create_s3_client", lambda: fake_s3_client)
+    monkeypatch.chdir(tmp_path)
+    caplog.set_level(logging.INFO, logger="app.main")
+
+    result = runner.invoke(
+        main.cli,
+        [
+            "ingest-games",
+            "--date",
+            "2025-06-15",
+            "--bucket",
+            TEST_BUCKET,
+            "--dry-run",
+        ],
+    )
+
+    assert result.exit_code == 0
+    fake_mlb_client.get_boxscore.assert_not_called()
+    fake_mlb_client.get_content.assert_not_called()
+    fake_s3_client.put_object.assert_not_called()
+
+    summary = json.loads(result.output)
+    assert summary["dry_run"] is True
+    assert summary["games_processed"] == 1
+    assert summary["games_failed"] == 0
+    assert "Dry run would fetch and upload boxscore" in caplog.text
+    assert "Dry run would fetch and upload content" in caplog.text
+
+
+def test_cli_ingest_games_returns_total_failure_exit_code_when_all_games_fail(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+):
+    """Runs where every processed game fails should exit with code 2."""
+    fake_mlb_client = MagicMock()
+    fake_s3_client = MagicMock()
+    runner = CliRunner()
+
+    fake_mlb_client.get_boxscore.side_effect = requests.ConnectionError("boom")
+    fake_mlb_client.get_content.side_effect = requests.ConnectionError("boom")
+
+    _mock_schedule_read(
+        fake_s3_client,
+        _build_schedule_payload(
+            schedule_date="2025-06-15",
+            games=[_build_schedule_game(752400)],
+        ),
+    )
+    fake_s3_client.head_object.side_effect = _raise_missing_head_object
+
+    monkeypatch.setattr(main, "create_mlb_client", lambda: fake_mlb_client)
+    monkeypatch.setattr(main, "create_s3_client", lambda: fake_s3_client)
+    monkeypatch.chdir(tmp_path)
+
+    result = runner.invoke(
+        main.cli,
+        ["ingest-games", "--date", "2025-06-15", "--bucket", TEST_BUCKET],
+    )
+
+    assert result.exit_code == 2
+    summary = json.loads(result.output)
+    assert summary["games_processed"] == 1
+    assert summary["games_succeeded"] == 0
+    assert summary["games_failed"] == 1

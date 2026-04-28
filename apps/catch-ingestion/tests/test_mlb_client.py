@@ -1,5 +1,6 @@
 """Tests for the MLB Stats API client (ethical fetching)."""
 
+import logging
 import time
 from unittest.mock import MagicMock, patch
 
@@ -7,10 +8,12 @@ import pytest
 import requests
 
 from app.mlb_client import (
+    MAX_RETRIES,
     USER_AGENT,
     MlbStatsClient,
     RetryableHTTPError,
     RobotsDenied,
+    WaitRetryAfterOrExponential,
 )
 
 # ---------------------------------------------------------------------------
@@ -109,14 +112,19 @@ class TestRetry:
             call_count += 1
             if call_count < 3:
                 resp = _error_response(429)
+                resp.headers = {"Retry-After": "7"}
                 return resp
             return _ok_response({"recovered": True})
 
-        with patch.object(client._session, "get", side_effect=_side_effect):
+        with (
+            patch.object(client._session, "get", side_effect=_side_effect),
+            patch("app.mlb_client.time.sleep") as mock_sleep,
+        ):
             result = client._get("/api/v1/test")
 
         assert result == {"recovered": True}
         assert call_count == 3
+        assert mock_sleep.call_args_list == [((7.0,),), ((7.0,),)]
 
     def test_retries_on_5xx(self):
         """HTTP 500 triggers a retry; eventual success is returned."""
@@ -149,9 +157,12 @@ class TestRetry:
                 "get",
                 return_value=_error_response(503),
             ),
-            pytest.raises(RetryableHTTPError),
+            patch("app.mlb_client.time.sleep"),
+            pytest.raises(RetryableHTTPError) as exc_info,
         ):
             client._get("/api/v1/test")
+
+        assert exc_info.value.retry_attempts == MAX_RETRIES + 1
 
     def test_non_retryable_error_raises_immediately(self):
         """HTTP 404 must *not* be retried — raise immediately."""
@@ -173,6 +184,47 @@ class TestRetry:
             client._get("/api/v1/test")
 
         assert call_count == 1
+
+    def test_retries_on_connection_error(self):
+        """Connection errors should be retried as transient failures."""
+        client = MlbStatsClient(delay=0)
+        client._robots_parser = _mock_robots_response()
+
+        with (
+            patch.object(
+                client._session,
+                "get",
+                side_effect=[
+                    requests.ConnectionError("boom"),
+                    _ok_response({"ok": True}),
+                ],
+            ),
+            patch("app.mlb_client.time.sleep"),
+        ):
+            assert client._get("/api/v1/test") == {"ok": True}
+
+        assert client.api_call_count == 2
+
+    def test_before_sleep_log_emits_retry_message(
+        self,
+        caplog: pytest.LogCaptureFixture,
+    ):
+        """Retry delays should be visible in logs via before_sleep_log."""
+        client = MlbStatsClient(delay=0)
+        client._robots_parser = _mock_robots_response()
+        caplog.set_level(logging.WARNING, logger="app.mlb_client")
+
+        with (
+            patch.object(
+                client._session,
+                "get",
+                side_effect=[requests.Timeout("boom"), _ok_response({"ok": True})],
+            ),
+            patch("app.mlb_client.time.sleep"),
+        ):
+            assert client._get("/api/v1/test") == {"ok": True}
+
+        assert "Retrying app.mlb_client.MlbStatsClient._get_with_retry" in caplog.text
 
 
 # ---------------------------------------------------------------------------
@@ -275,3 +327,15 @@ class TestPublicMethods:
             assert result == expected
             call_url = mock_get.call_args[0][0]
             assert "/api/v1/game/99999/content" in call_url
+
+
+def test_retry_wait_uses_retry_after_header():
+    """Retry-After should override exponential backoff when present."""
+    response = _error_response(429)
+    response.headers = {"Retry-After": "11"}
+    retry_state = MagicMock()
+    retry_state.outcome.exception.return_value = RetryableHTTPError(response=response)
+
+    wait_strategy = WaitRetryAfterOrExponential()
+
+    assert wait_strategy(retry_state) == 11
