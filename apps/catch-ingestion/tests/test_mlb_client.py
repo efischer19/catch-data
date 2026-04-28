@@ -2,6 +2,7 @@
 
 import logging
 import time
+from datetime import UTC, datetime
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -15,6 +16,7 @@ from app.mlb_client import (
     RetryableHTTPError,
     RobotsDenied,
     WaitRetryAfterOrExponential,
+    _retry_after_seconds,
 )
 
 # ---------------------------------------------------------------------------
@@ -341,3 +343,19 @@ def test_retry_wait_uses_retry_after_header():
     wait_strategy = WaitRetryAfterOrExponential()
 
     assert wait_strategy(retry_state) == 11
+
+
+def test_retry_after_seconds_supports_http_date():
+    """HTTP-date Retry-After headers should be converted to a delay."""
+    with (
+        patch(
+            "app.mlb_client.parsedate_to_datetime",
+            return_value=datetime(2026, 4, 28, 13, 5, 0),
+        ),
+        patch(
+            "app.mlb_client.datetime",
+        ) as mock_datetime,
+    ):
+        mock_datetime.now.return_value = datetime(2026, 4, 28, 13, 4, 50, tzinfo=UTC)
+
+        assert _retry_after_seconds("Mon, 28 Apr 2026 13:05:00 GMT") == 10

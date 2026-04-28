@@ -15,6 +15,7 @@ import requests
 from botocore.exceptions import ClientError
 from catch_models import CatchPaths
 from click.testing import CliRunner
+from pythonjsonlogger.json import JsonFormatter
 from testing.conftest import TEST_BUCKET
 
 from app import main
@@ -226,6 +227,58 @@ def test_parse_target_date_rejects_invalid_values():
     """Invalid date strings should raise a Click bad-parameter error."""
     with pytest.raises(click.BadParameter, match="Use YYYY-MM-DD format"):
         main.parse_target_date("2025-13-45")
+
+
+def test_configure_logging_updates_existing_handler_formatter(monkeypatch):
+    """Text logging should refresh existing handler formatters."""
+    root_logger = logging.getLogger()
+    original_handlers = root_logger.handlers[:]
+    original_level = root_logger.level
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.Formatter("%(message)s"))
+
+    try:
+        root_logger.handlers = [handler]
+        monkeypatch.delenv("LOG_FORMAT", raising=False)
+
+        main.configure_logging()
+
+        assert handler.formatter is not None
+        assert handler.formatter._fmt == "%(levelname)s:%(name)s:%(message)s"
+    finally:
+        root_logger.handlers = original_handlers
+        root_logger.setLevel(original_level)
+
+
+def test_configure_logging_forces_json_formatter_on_existing_handler(monkeypatch):
+    """JSON logging should override handlers even without existing formatters."""
+    root_logger = logging.getLogger()
+    original_handlers = root_logger.handlers[:]
+    original_level = root_logger.level
+    handler = logging.StreamHandler()
+
+    try:
+        root_logger.handlers = [handler]
+        monkeypatch.setenv("LOG_FORMAT", "json")
+
+        main.configure_logging()
+
+        assert isinstance(handler.formatter, JsonFormatter)
+    finally:
+        root_logger.handlers = original_handlers
+        root_logger.setLevel(original_level)
+
+
+def test_api_call_warning_threshold_invalid_value_logs_warning(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+):
+    """Invalid threshold values should warn and fall back to the default."""
+    monkeypatch.setenv("API_CALL_WARNING_THRESHOLD", "not-a-number")
+    caplog.set_level(logging.WARNING, logger="app.main")
+
+    assert main.api_call_warning_threshold() == main.DEFAULT_API_CALL_WARNING_THRESHOLD
+    assert "Invalid API_CALL_WARNING_THRESHOLD; using default" in caplog.text
 
 
 def test_read_json_from_s3_decodes_body():
