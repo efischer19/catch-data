@@ -18,7 +18,7 @@ from pythonjsonlogger.json import JsonFormatter
 from app.mlb_client import MlbStatsClient
 
 logger = logging.getLogger(__name__)
-FAILED_GAMES_PATH = Path("failed_games.json")
+DEFAULT_FAILED_GAMES_FILENAME = "failed_games.json"
 DEFAULT_API_CALL_WARNING_THRESHOLD = 100
 
 
@@ -64,7 +64,8 @@ def configure_logging() -> None:
 
     force_json_formatter = log_format == "json"
     for handler in root_logger.handlers:
-        if handler.formatter is not None or force_json_formatter:
+        should_update_formatter = handler.formatter is not None or force_json_formatter
+        if should_update_formatter:
             handler.setFormatter(formatter)
 
 
@@ -213,10 +214,16 @@ def api_call_count(mlb_client: Any) -> int:
     return value if isinstance(value, int) and value >= 0 else 0
 
 
+def failed_games_path() -> Path:
+    """Return the local path used to persist failed game primary keys."""
+    return Path(os.getenv("FAILED_GAMES_PATH", DEFAULT_FAILED_GAMES_FILENAME))
+
+
 def write_failed_games_file(failed_game_pks: list[int]) -> str:
     """Persist failed game primary keys for manual retry."""
-    FAILED_GAMES_PATH.write_text(json.dumps(failed_game_pks), encoding="utf-8")
-    return str(FAILED_GAMES_PATH)
+    path = failed_games_path()
+    path.write_text(json.dumps(failed_game_pks), encoding="utf-8")
+    return str(path)
 
 
 def determine_exit_code(summary: dict[str, Any]) -> int:

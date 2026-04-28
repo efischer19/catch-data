@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 USER_AGENT = "catch-data/0.1 (+https://github.com/efischer19/catch-data)"
 BASE_URL = "https://statsapi.mlb.com"
 DEFAULT_DELAY = 1.0  # seconds between consecutive requests
-RETRY_BASE_SECONDS = 2
+RETRY_EXPONENTIAL_BASE_SECONDS = 2
 RETRY_MAX_SECONDS = 60
 MAX_RETRIES = 5
 
@@ -47,7 +47,12 @@ class RetryableHTTPError(requests.HTTPError):
 
 
 def retry_sleep(seconds: float) -> None:
-    """Sleep for the requested retry interval."""
+    """Sleep for the requested retry interval.
+
+    This wrapper intentionally calls ``time.sleep`` indirectly so tests can
+    patch ``app.mlb_client.time.sleep`` and avoid real retry delays while
+    still exercising Tenacity's ``before_sleep_log`` hooks.
+    """
     time.sleep(seconds)
 
 
@@ -73,8 +78,8 @@ class WaitRetryAfterOrExponential(wait_base):
 
     def __init__(self) -> None:
         self._fallback = wait_exponential(
-            multiplier=RETRY_BASE_SECONDS,
-            min=RETRY_BASE_SECONDS,
+            multiplier=RETRY_EXPONENTIAL_BASE_SECONDS,
+            min=RETRY_EXPONENTIAL_BASE_SECONDS,
             max=RETRY_MAX_SECONDS,
         )
 
