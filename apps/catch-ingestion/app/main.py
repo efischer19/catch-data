@@ -62,8 +62,9 @@ def configure_logging() -> None:
         root_logger.addHandler(handler)
         return
 
+    force_json_formatter = log_format == "json"
     for handler in root_logger.handlers:
-        if handler.formatter is not None or log_format == "json":
+        if handler.formatter is not None or force_json_formatter:
             handler.setFormatter(formatter)
 
 

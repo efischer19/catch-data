@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 import requests
+from requests.structures import CaseInsensitiveDict
 
 from app.mlb_client import (
     MAX_RETRIES,
@@ -40,6 +41,7 @@ def _ok_response(json_body: dict | None = None, status_code: int = 200):
 def _error_response(status_code: int):
     """Build a fake ``requests.Response`` that signals an error."""
     resp = MagicMock(spec=requests.Response)
+    resp.headers = CaseInsensitiveDict()
     resp.status_code = status_code
     resp.json.return_value = {}
     resp.raise_for_status.side_effect = requests.HTTPError(response=resp)
@@ -112,7 +114,7 @@ class TestRetry:
             call_count += 1
             if call_count < 3:
                 resp = _error_response(429)
-                resp.headers = {"Retry-After": "7"}
+                resp.headers.update({"Retry-After": "7"})
                 return resp
             return _ok_response({"recovered": True})
 
@@ -332,7 +334,7 @@ class TestPublicMethods:
 def test_retry_wait_uses_retry_after_header():
     """Retry-After should override exponential backoff when present."""
     response = _error_response(429)
-    response.headers = {"Retry-After": "11"}
+    response.headers.update({"Retry-After": "11"})
     retry_state = MagicMock()
     retry_state.outcome.exception.return_value = RetryableHTTPError(response=response)
 
