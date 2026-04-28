@@ -64,8 +64,7 @@ def configure_logging() -> None:
 
     force_json_formatter = log_format == "json"
     for handler in root_logger.handlers:
-        should_update_formatter = handler.formatter is not None or force_json_formatter
-        if should_update_formatter:
+        if handler.formatter is not None or force_json_formatter:
             handler.setFormatter(formatter)
 
 
@@ -228,13 +227,12 @@ def write_failed_games_file(failed_game_pks: list[int]) -> str:
 
 def determine_exit_code(summary: dict[str, Any]) -> int:
     """Map the ingestion summary to the documented CLI exit code contract."""
-    games_processed = summary["games_processed"]
     games_succeeded = summary["games_succeeded"]
     games_failed = summary["games_failed"]
 
     if games_failed == 0:
         return 0
-    if games_processed == 0 or games_succeeded == 0:
+    if games_succeeded == 0:
         return 2
     return 1
 

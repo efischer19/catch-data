@@ -47,12 +47,7 @@ class RetryableHTTPError(requests.HTTPError):
 
 
 def retry_sleep(seconds: float) -> None:
-    """Sleep for the requested retry interval.
-
-    This wrapper intentionally calls ``time.sleep`` indirectly so tests can
-    patch ``app.mlb_client.time.sleep`` and avoid real retry delays while
-    still exercising Tenacity's ``before_sleep_log`` hooks.
-    """
+    """Wrapper around ``time.sleep`` that provides a mockable test seam."""
     time.sleep(seconds)
 
 
@@ -73,6 +68,22 @@ def _retry_after_seconds(retry_after: str) -> float | None:
         )
 
 
+def _get_retry_after_seconds(error: BaseException) -> float | None:
+    """Return the retry delay requested by an HTTP 429 response, if any."""
+    if (
+        not isinstance(error, RetryableHTTPError)
+        or error.response is None
+        or error.response.status_code != 429
+    ):
+        return None
+
+    retry_after = error.response.headers.get("Retry-After")
+    if not retry_after:
+        return None
+
+    return _retry_after_seconds(retry_after)
+
+
 class WaitRetryAfterOrExponential(wait_base):
     """Use Retry-After for HTTP 429 when present, else exponential backoff."""
 
@@ -86,16 +97,9 @@ class WaitRetryAfterOrExponential(wait_base):
     def __call__(self, retry_state: RetryCallState) -> float:
         if retry_state.outcome is not None:
             error = retry_state.outcome.exception()
-            if (
-                isinstance(error, RetryableHTTPError)
-                and error.response is not None
-                and error.response.status_code == 429
-            ):
-                retry_after = error.response.headers.get("Retry-After")
-                if retry_after:
-                    parsed_retry_after = _retry_after_seconds(retry_after)
-                    if parsed_retry_after is not None:
-                        return min(parsed_retry_after, RETRY_MAX_SECONDS)
+            parsed_retry_after = _get_retry_after_seconds(error)
+            if parsed_retry_after is not None:
+                return min(parsed_retry_after, RETRY_MAX_SECONDS)
 
         return self._fallback(retry_state)
 
