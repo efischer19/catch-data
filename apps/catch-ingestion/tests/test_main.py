@@ -432,7 +432,6 @@ def test_cli_ingest_games_uploads_missing_objects_and_skips_existing(
         "games_skipped": 1,
         "games_succeeded": 1,
         "games_to_process": 1,
-        "games_uploaded": 1,
         "boxscores_uploaded": 1,
         "contents_uploaded": 1,
         "schedule_key": CatchPaths.bronze_schedule_key(2025),
