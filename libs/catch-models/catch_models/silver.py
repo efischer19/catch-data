@@ -130,7 +130,7 @@ class SilverProcessingErrors(BaseModel):
     )
 
     @model_validator(mode="after")
-    def _validate_count_matches_games(self) -> SilverProcessingErrors:
+    def _validate_count_matches_game_pks(self) -> SilverProcessingErrors:
         if self.count != len(self.game_pks):
             raise ValueError("processing error count must match the number of gamePks")
         return self

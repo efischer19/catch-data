@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import re
+from collections import Counter
 from datetime import UTC, datetime
 from typing import Any
 from urllib.parse import unquote_plus
@@ -370,8 +371,8 @@ def build_silver_game(
     content: ContentResponse | None,
 ) -> SilverGame | None:
     """Join Bronze schedule, boxscore, and content data into one Silver game."""
+    sample: Any = schedule_game.model_dump(mode="json", by_alias=True)
     try:
-        payload: dict[str, Any] | None = None
         linescore = (
             boxscore.liveData.linescore
             if boxscore is not None
@@ -451,26 +452,32 @@ def build_silver_game(
             "source_updated_at": _parse_source_updated_at(schedule_game, boxscore),
             "data_completeness": _boxscore_completeness(boxscore),
         }
+        sample = payload
         return SilverGame.model_validate(payload)
     except (ValidationError, ValueError) as error:
-        _log_game_processing_failure(
-            schedule_game,
-            error,
-            payload
-            if payload is not None
-            else schedule_game.model_dump(mode="json", by_alias=True),
-        )
+        _log_game_processing_failure(schedule_game, error, sample)
         return None
 
 
 def _duplicate_game_pks(games: list[SilverGame]) -> list[int]:
-    seen: set[int] = set()
-    duplicates: set[int] = set()
-    for game in games:
-        if game.game_pk in seen:
-            duplicates.add(game.game_pk)
-        seen.add(game.game_pk)
-    return sorted(duplicates)
+    game_pk_counts = Counter(game.game_pk for game in games)
+    return sorted(game_pk for game_pk, count in game_pk_counts.items() if count > 1)
+
+
+def _percentage_exceeds_threshold(
+    count: int,
+    total: int,
+    percent: int,
+    *,
+    inclusive: bool,
+) -> bool:
+    actual_scaled = count * 100
+    threshold_scaled = total * percent
+    return (
+        actual_scaled >= threshold_scaled
+        if inclusive
+        else actual_scaled > threshold_scaled
+    )
 
 
 def _validate_master_schedule_quality(
@@ -487,8 +494,11 @@ def _validate_master_schedule_quality(
 
     if total_schedule_games:
         failed_games = len(failed_game_pks)
-        if failed_games * 100 >= (
-            total_schedule_games * _PROCESSING_FAILURE_THRESHOLD_PERCENT
+        if _percentage_exceeds_threshold(
+            failed_games,
+            total_schedule_games,
+            _PROCESSING_FAILURE_THRESHOLD_PERCENT,
+            inclusive=True,
         ):
             raise RuntimeError(
                 "Silver processing failure rate exceeded threshold: "
@@ -496,9 +506,11 @@ def _validate_master_schedule_quality(
             )
 
         accounted_games = len(silver_games) + len(failed_game_pks)
-        if (
-            abs(accounted_games - total_schedule_games) * 100
-            > total_schedule_games * _QUALITY_TOLERANCE_PERCENT
+        if _percentage_exceeds_threshold(
+            abs(accounted_games - total_schedule_games),
+            total_schedule_games,
+            _QUALITY_TOLERANCE_PERCENT,
+            inclusive=False,
         ):
             raise RuntimeError(
                 "Silver game count deviates from Bronze schedule count beyond "

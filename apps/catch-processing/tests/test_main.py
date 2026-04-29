@@ -85,7 +85,8 @@ def _json_bytes(payload: dict) -> bytes:
     return json.dumps(payload).encode("utf-8")
 
 
-def _build_test_silver_game(schedule_game: main.ScheduleGame) -> SilverGame:
+def _create_test_silver_game(schedule_game: main.ScheduleGame) -> SilverGame:
+    """Create a minimal valid SilverGame from a Bronze schedule game."""
     return SilverGame.model_validate(
         {
             "gamePk": schedule_game.gamePk,
@@ -123,6 +124,7 @@ def _build_test_silver_game(schedule_game: main.ScheduleGame) -> SilverGame:
 
 
 def _make_schedule_with_games(total_games: int) -> dict:
+    """Generate a synthetic Bronze schedule payload with ``total_games`` games."""
     schedule = _load_fixture("schedule_typical.json")
     template = deepcopy(schedule["dates"][0]["games"][0])
     schedule["dates"] = [deepcopy(schedule["dates"][0])]
@@ -342,7 +344,7 @@ def test_lambda_handler_applies_processing_failure_threshold(
         del boxscore, content
         if schedule_game.gamePk in failing_game_pks:
             return None
-        return _build_test_silver_game(schedule_game)
+        return _create_test_silver_game(schedule_game)
 
     monkeypatch.setattr(main, "build_silver_game", _fake_build_silver_game)
 
@@ -378,7 +380,9 @@ def test_build_master_schedule_rejects_duplicate_game_pks(
     monkeypatch.setattr(
         main,
         "build_silver_game",
-        lambda schedule_game, boxscore, content: _build_test_silver_game(schedule_game),
+        lambda schedule_game, boxscore, content: _create_test_silver_game(
+            schedule_game
+        ),
     )
 
     with pytest.raises(RuntimeError, match="duplicate gamePk"):
