@@ -465,7 +465,12 @@ def upload_schedule_to_s3(
     year: int,
     schedule_payload: dict[str, Any],
 ) -> tuple[str, int, int]:
-    """Upload a season schedule JSON payload to the Bronze S3 layer."""
+    """Upload a season schedule JSON payload to the Bronze S3 layer.
+
+    This upload is the Bronze completion signal for Silver processing, so any
+    workflow that also uploads Bronze boxscore/content objects should publish
+    those first and upload the schedule last.
+    """
     key = CatchPaths.bronze_schedule_key(year)
     body = json.dumps(schedule_payload).encode("utf-8")
     game_count = schedule_game_count(schedule_payload)

@@ -69,8 +69,10 @@ Key bucket settings:
 Set `cors_allowed_origins` explicitly per environment before applying if the
 frontend needs direct browser access to S3-hosted objects.
 
-S3 event notifications are intentionally not configured yet; they will be added
-once the downstream Lambda functions exist.
+Bronze schedule uploads trigger the Silver processing Lambda via an S3 event
+notification on `s3:ObjectCreated:*` with the `bronze/schedule_` key prefix.
+This keeps Bronze → Silver processing event-driven while avoiding Lambda
+invocations for Bronze boxscore and content uploads.
 
 > **Note:** Never commit real AWS account IDs, ARNs, or credentials to version
 > control.
