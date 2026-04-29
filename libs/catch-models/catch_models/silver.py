@@ -13,6 +13,7 @@ from pydantic import (
     Field,
     field_serializer,
     field_validator,
+    model_validator,
 )
 
 _SILVER_CONFIG = ConfigDict(
@@ -116,6 +117,25 @@ class SilverGame(_SilverBaseModel):
     )
 
 
+class SilverProcessingErrors(BaseModel):
+    """Summary of Silver-layer records excluded during processing."""
+
+    model_config = _SILVER_CONFIG
+
+    count: int = Field(0, ge=0, description="Number of games excluded from output")
+    game_pks: list[int] = Field(
+        default_factory=list,
+        alias="gamePks",
+        description="MLB game identifiers excluded during processing",
+    )
+
+    @model_validator(mode="after")
+    def _validate_count_matches_games(self) -> SilverProcessingErrors:
+        if self.count != len(self.game_pks):
+            raise ValueError("processing error count must match the number of gamePks")
+        return self
+
+
 class SilverMasterSchedule(_SilverBaseModel):
     """Season container for Silver-layer MLB game records."""
 
@@ -127,4 +147,8 @@ class SilverMasterSchedule(_SilverBaseModel):
     games: list[SilverGame] = Field(
         default_factory=list,
         description="Silver-layer game records for the season",
+    )
+    processing_errors: SilverProcessingErrors = Field(
+        default_factory=SilverProcessingErrors,
+        description="Summary of games excluded from the Silver output",
     )

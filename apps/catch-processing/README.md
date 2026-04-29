@@ -31,7 +31,10 @@ poetry run catch-processing process \
 
 The deployed entry point is the `lambda_handler` function in `app/main.py`,
 which consumes S3 event notifications and derives the target season from the
-uploaded Bronze schedule key.
+uploaded Bronze schedule key. Generated Silver files include a
+`processing_errors` summary so downstream layers can distinguish excluded games
+from successfully validated records. When `SILVER_DLQ_URL` is configured, the
+Lambda also publishes failed invocation events to SQS before re-raising.
 
 ## Development
 

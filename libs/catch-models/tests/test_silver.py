@@ -2,7 +2,14 @@
 
 import json
 
-from catch_models import DataCompleteness, SilverGame, SilverMasterSchedule
+import pytest
+
+from catch_models import (
+    DataCompleteness,
+    SilverGame,
+    SilverMasterSchedule,
+    SilverProcessingErrors,
+)
 
 
 def test_silver_game_validates_realistic_final_game():
@@ -137,6 +144,10 @@ def test_silver_master_schedule_serializes_utc_metadata_and_schema():
                     "data_completeness": "partial",
                 },
             ],
+            "processing_errors": {
+                "count": 1,
+                "gamePks": [750002],
+            },
         },
     )
 
@@ -147,7 +158,19 @@ def test_silver_master_schedule_serializes_utc_metadata_and_schema():
     assert dumped["games"][0]["gamePk"] == 750001
     assert dumped["games"][0]["innings"] == 10
     assert dumped["games"][0]["data_completeness"] == "partial"
+    assert dumped["processing_errors"] == {"count": 1, "gamePks": [750002]}
     assert schema["properties"]["last_updated"]["format"] == "date-time"
     assert schema["properties"]["games"]["items"]["$ref"] == "#/$defs/SilverGame"
     assert "gamePk" in schema["$defs"]["SilverGame"]["properties"]
     json.dumps(schema)
+
+
+def test_silver_processing_errors_requires_matching_count():
+    """Processing error summaries should be internally consistent."""
+    summary = SilverProcessingErrors(count=2, gamePks=[745678, 745679])
+
+    assert summary.count == 2
+    assert summary.game_pks == [745678, 745679]
+
+    with pytest.raises(ValueError, match="processing error count"):
+        SilverProcessingErrors(count=1, gamePks=[745678, 745679])
