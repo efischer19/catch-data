@@ -7,7 +7,6 @@ import logging
 import os
 import re
 from datetime import UTC, datetime
-from math import isclose
 from typing import Any
 from urllib.parse import unquote_plus
 
@@ -30,8 +29,14 @@ logger = logging.getLogger(__name__)
 _SCHEDULE_KEY_RE = re.compile(r"(^|/)bronze/schedule_(?P<year>\d{4})\.json$")
 _MISSING_OBJECT_ERROR_CODES = {"404", "NoSuchKey", "NotFound"}
 _DLQ_URL_ENV_VAR = "SILVER_DLQ_URL"
-_PROCESSING_FAILURE_THRESHOLD = 0.2
-_QUALITY_TOLERANCE = 0.05
+# Reject Silver outputs once failures reach 20% because the issue's safety-valve
+# requirement treats that as a likely upstream schema change instead of a few
+# isolated bad games.
+_PROCESSING_FAILURE_THRESHOLD_PERCENT = 20
+# Allow a 5% accounting gap between Bronze schedule records and the sum of
+# successful Silver rows plus excluded failures to tolerate small expected
+# differences without hiding a larger data-loss problem.
+_QUALITY_TOLERANCE_PERCENT = 5
 _LOG_SAMPLE_LIMIT = 500
 _TEAM_ABBREVIATIONS_BY_ID = {
     108: "LAA",
@@ -481,23 +486,23 @@ def _validate_master_schedule_quality(
         )
 
     if total_schedule_games:
-        failure_rate = len(failed_game_pks) / total_schedule_games
-        if failure_rate >= _PROCESSING_FAILURE_THRESHOLD:
+        failed_games = len(failed_game_pks)
+        if failed_games * 100 >= (
+            total_schedule_games * _PROCESSING_FAILURE_THRESHOLD_PERCENT
+        ):
             raise RuntimeError(
                 "Silver processing failure rate exceeded threshold: "
-                f"{len(failed_game_pks)}/{total_schedule_games}"
+                f"{failed_games}/{total_schedule_games}"
             )
 
         accounted_games = len(silver_games) + len(failed_game_pks)
-        if not isclose(
-            accounted_games,
-            total_schedule_games,
-            rel_tol=_QUALITY_TOLERANCE,
-            abs_tol=0,
+        if (
+            abs(accounted_games - total_schedule_games) * 100
+            > total_schedule_games * _QUALITY_TOLERANCE_PERCENT
         ):
             raise RuntimeError(
                 "Silver game count deviates from Bronze schedule count beyond "
-                f"{_QUALITY_TOLERANCE:.0%}: accounted={accounted_games}, "
+                f"{_QUALITY_TOLERANCE_PERCENT}%: accounted={accounted_games}, "
                 f"bronze={total_schedule_games}"
             )
 

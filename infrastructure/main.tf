@@ -235,7 +235,7 @@ resource "aws_lambda_function" "app" {
       ENVIRONMENT    = var.environment
       S3_BUCKET_NAME = aws_s3_bucket.data.id
       LOG_FORMAT     = "json"
-      SILVER_DLQ_URL = aws_sqs_queue.silver_processing_dlq.id
+      SILVER_DLQ_URL = aws_sqs_queue.silver_processing_dlq.url
     }
   }
 
