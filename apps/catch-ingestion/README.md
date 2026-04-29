@@ -38,7 +38,20 @@ poetry run catch-ingestion ingest-games --bucket catch-data-data-dev
 poetry run catch-ingestion ingest-games \
     --date 2025-06-15 \
     --bucket catch-data-data-dev
+
+# Preview completed-game ingestion without API calls or S3 writes
+poetry run catch-ingestion ingest-games \
+    --date 2025-06-15 \
+    --bucket catch-data-data-dev \
+    --dry-run
 ```
+
+`ingest-games` writes failed game PKs to `failed_games.json` in the current
+working directory and exits with:
+
+* `0` when all processed games succeed
+* `1` when some games fail
+* `2` when every processed game fails or the run cannot start
 
 ## Development
 

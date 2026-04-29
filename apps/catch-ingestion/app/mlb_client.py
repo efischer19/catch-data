@@ -3,7 +3,7 @@
 Implements the project's Robot Ethics policy (meta/ROBOT_ETHICS.md):
 - Honest User-Agent identification
 - Polite throttling between requests
-- Exponential backoff retry on 429/5xx errors (ADR-010: Tenacity)
+- Exponential backoff retry on transient failures (ADR-010: Tenacity)
 - robots.txt compliance
 
 All methods return raw JSON as Python dicts — Bronze layer contract
@@ -13,20 +13,29 @@ All methods return raw JSON as Python dicts — Bronze layer contract
 import logging
 import time
 import urllib.robotparser
+from datetime import UTC, datetime
+from email.utils import parsedate_to_datetime
 
 import requests
 from tenacity import (
+    RetryCallState,
+    RetryError,
+    before_sleep_log,
     retry,
-    retry_if_exception_type,
+    retry_if_exception,
     stop_after_attempt,
     wait_exponential,
 )
+from tenacity.wait import wait_base
 
 logger = logging.getLogger(__name__)
 
 USER_AGENT = "catch-data/0.1 (+https://github.com/efischer19/catch-data)"
 BASE_URL = "https://statsapi.mlb.com"
 DEFAULT_DELAY = 1.0  # seconds between consecutive requests
+RETRY_EXPONENTIAL_BASE_SECONDS = 2
+RETRY_MAX_SECONDS = 60
+MAX_RETRIES = 5
 
 
 class RobotsDenied(Exception):
@@ -35,6 +44,72 @@ class RobotsDenied(Exception):
 
 class RetryableHTTPError(requests.HTTPError):
     """HTTP error eligible for automatic retry (429 or 5xx)."""
+
+
+def retry_sleep(seconds: float) -> None:
+    """Wrapper around ``time.sleep`` that provides a mockable test seam."""
+    time.sleep(seconds)
+
+
+def _retry_after_seconds(retry_after: str) -> float | None:
+    """Parse a Retry-After header into seconds."""
+    try:
+        return max(float(retry_after), 0.0)
+    except ValueError:
+        try:
+            retry_after_datetime = parsedate_to_datetime(retry_after)
+        except (TypeError, ValueError):
+            return None
+        if retry_after_datetime.tzinfo is None:
+            retry_after_datetime = retry_after_datetime.replace(tzinfo=UTC)
+        return max(
+            (retry_after_datetime - datetime.now(tz=UTC)).total_seconds(),
+            0.0,
+        )
+
+
+def _get_retry_after_seconds(error: BaseException) -> float | None:
+    """Return the retry delay requested by an HTTP 429 response, if any."""
+    if (
+        not isinstance(error, RetryableHTTPError)
+        or error.response is None
+        or error.response.status_code != 429
+    ):
+        return None
+
+    retry_after = error.response.headers.get("Retry-After")
+    if not retry_after:
+        return None
+
+    return _retry_after_seconds(retry_after)
+
+
+class WaitRetryAfterOrExponential(wait_base):
+    """Use Retry-After for HTTP 429 when present, else exponential backoff."""
+
+    def __init__(self) -> None:
+        self._fallback = wait_exponential(
+            multiplier=RETRY_EXPONENTIAL_BASE_SECONDS,
+            min=RETRY_EXPONENTIAL_BASE_SECONDS,
+            max=RETRY_MAX_SECONDS,
+        )
+
+    def __call__(self, retry_state: RetryCallState) -> float:
+        if retry_state.outcome is not None:
+            error = retry_state.outcome.exception()
+            parsed_retry_after = _get_retry_after_seconds(error)
+            if parsed_retry_after is not None:
+                return min(parsed_retry_after, RETRY_MAX_SECONDS)
+
+        return self._fallback(retry_state)
+
+
+def _is_retryable_request_error(error: BaseException) -> bool:
+    """Return whether an exception represents a transient HTTP failure."""
+    return isinstance(
+        error,
+        RetryableHTTPError | requests.ConnectionError | requests.Timeout,
+    )
 
 
 class MlbStatsClient:
@@ -57,6 +132,7 @@ class MlbStatsClient:
         self._delay = delay
         self._last_request_time: float | None = None
         self._robots_parser: urllib.robotparser.RobotFileParser | None = None
+        self._api_call_count = 0
 
         self._session = requests.Session()
         self._session.headers["User-Agent"] = USER_AGENT
@@ -105,12 +181,14 @@ class MlbStatsClient:
     # Core request method with retry
     # ------------------------------------------------------------------
     @retry(
-        retry=retry_if_exception_type(RetryableHTTPError),
-        wait=wait_exponential(multiplier=1, min=1, max=10),
-        stop=stop_after_attempt(3),
-        reraise=True,
+        retry=retry_if_exception(_is_retryable_request_error),
+        wait=WaitRetryAfterOrExponential(),
+        stop=stop_after_attempt(MAX_RETRIES + 1),
+        before_sleep=before_sleep_log(logger, logging.WARNING),
+        reraise=False,
+        sleep=retry_sleep,
     )
-    def _get(self, path: str) -> dict:
+    def _get_with_retry(self, path: str) -> dict:
         """Perform a GET request with throttling and retry.
 
         Parameters
@@ -137,6 +215,7 @@ class MlbStatsClient:
 
         url = f"{self._base_url}{path}"
         logger.info("GET %s", url)
+        self._api_call_count += 1
         response = self._session.get(url, timeout=30)
         self._last_request_time = time.monotonic()
 
@@ -147,6 +226,22 @@ class MlbStatsClient:
 
         response.raise_for_status()
         return response.json()
+
+    def _get(self, path: str) -> dict:
+        """Perform a GET request with retry and attach final attempt metadata."""
+        try:
+            return self._get_with_retry(path)
+        except RetryError as error:
+            original_error = error.last_attempt.exception()
+            if original_error is None:
+                raise
+            original_error.retry_attempts = error.last_attempt.attempt_number
+            raise original_error from error
+
+    @property
+    def api_call_count(self) -> int:
+        """Return the number of outbound API calls made by this client."""
+        return self._api_call_count
 
     # ------------------------------------------------------------------
     # Public API methods — Bronze layer (raw JSON, no transformation)
