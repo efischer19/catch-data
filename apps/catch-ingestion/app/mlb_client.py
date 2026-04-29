@@ -108,11 +108,7 @@ def _is_retryable_request_error(error: BaseException) -> bool:
     """Return whether an exception represents a transient HTTP failure."""
     return isinstance(
         error,
-        (
-            RetryableHTTPError,
-            requests.ConnectionError,
-            requests.Timeout,
-        ),
+        RetryableHTTPError | requests.ConnectionError | requests.Timeout,
     )
 
 
