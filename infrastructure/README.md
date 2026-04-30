@@ -47,6 +47,8 @@ Once setup is complete:
 | Terraform lock table | `catch-data-tf-lock` |
 | Project name | `catch-data` |
 | Data bucket | `catch-data-{environment}` |
+| Silver Lambda | `catch-processing-{environment}` |
+| Gold Lambda | `catch-analytics-{environment}` |
 
 ## S3 Data Bucket Configuration
 
@@ -78,6 +80,33 @@ invocations for Bronze boxscore and content uploads. Terraform also provisions
 an SQS dead-letter queue for the Silver Lambda and exposes its URL to the
 function as `SILVER_DLQ_URL` so failed invocation events can be captured for
 retry or investigation.
+
+## Lambda Container Configuration
+
+Terraform provisions two reusable `lambda-pipeline-stage` module instances:
+
+* **Silver — `catch-processing-{environment}`**
+  * Package type: Lambda container image from the `catch-processing-{environment}`
+    ECR repository
+  * Memory: `512` MB
+  * Timeout: `300` seconds
+  * Environment variables: `ENVIRONMENT`, `S3_BUCKET_NAME`, `LOG_FORMAT=json`,
+    and `SILVER_DLQ_URL`
+  * IAM scope: `s3:GetObject` on `bronze/*`, `s3:PutObject` on `silver/*`, plus
+    `sqs:SendMessage` to the Silver DLQ
+
+* **Gold — `catch-analytics-{environment}`**
+  * Package type: Lambda container image from the `catch-analytics-{environment}`
+    ECR repository
+  * Memory: `256` MB
+  * Timeout: `120` seconds
+  * Environment variables: `ENVIRONMENT`, `S3_BUCKET_NAME`, `LOG_FORMAT=json`
+  * IAM scope: `s3:GetObject` on `silver/*` and `s3:PutObject` on `gold/*`
+
+Each ECR repository is immutable, scans images on push, and applies a lifecycle
+policy that retains only the last 10 untagged images. Set
+`catch_processing_image_tag` and `catch_analytics_image_tag` to a pinned image
+tag (for example a git SHA or semantic version) before `terraform apply`.
 
 > **Note:** Never commit real AWS account IDs, ARNs, or credentials to version
 > control.

@@ -16,7 +16,14 @@
 # simplicity. IAM policies can restrict access per prefix if needed.
 # -----------------------------------------------------------------------------
 locals {
-  data_bucket_name = "catch-data-${var.environment}"
+  data_bucket_name                     = "catch-data-${var.environment}"
+  seconds_per_day                      = 24 * 60 * 60
+  silver_processing_dlq_retention_days = 14
+  # SQS supports up to 14 days of message retention; keep failed Silver events
+  # available for the full window to maximize replay/debugging time.
+  silver_processing_dlq_retention_seconds = (
+    local.silver_processing_dlq_retention_days * local.seconds_per_day
+  )
 }
 
 resource "aws_s3_bucket" "data" {
@@ -106,51 +113,9 @@ resource "aws_s3_bucket_cors_configuration" "data" {
   }
 }
 
-# -----------------------------------------------------------------------------
-# ECR Repository — Container image registry
-# -----------------------------------------------------------------------------
-resource "aws_ecr_repository" "app" {
-  name                 = "${var.project_name}-${var.environment}"
-  image_tag_mutability = "IMMUTABLE"
-
-  image_scanning_configuration {
-    scan_on_push = true
-  }
-
-  tags = {
-    Project     = var.project_name
-    Environment = var.environment
-    ManagedBy   = "terraform"
-  }
-}
-
-resource "aws_ecr_lifecycle_policy" "app" {
-  repository = aws_ecr_repository.app.name
-
-  policy = jsonencode({
-    rules = [
-      {
-        rulePriority = 1
-        description  = "Keep only the last 10 untagged images"
-        selection = {
-          tagStatus   = "untagged"
-          countType   = "imageCountMoreThan"
-          countNumber = 10
-        }
-        action = {
-          type = "expire"
-        }
-      }
-    ]
-  })
-}
-
-# -----------------------------------------------------------------------------
-# IAM Role — Lambda execution role
-# -----------------------------------------------------------------------------
 resource "aws_sqs_queue" "silver_processing_dlq" {
   name                      = "${var.project_name}-silver-dlq-${var.environment}"
-  message_retention_seconds = 1209600
+  message_retention_seconds = local.silver_processing_dlq_retention_seconds
 
   tags = {
     Project     = var.project_name
@@ -159,62 +124,47 @@ resource "aws_sqs_queue" "silver_processing_dlq" {
   }
 }
 
-resource "aws_iam_role" "lambda_execution" {
-  name = "${var.project_name}-lambda-${var.environment}"
+module "catch_processing" {
+  source = "./modules/lambda-pipeline-stage"
 
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Action = "sts:AssumeRole"
-        Effect = "Allow"
-        Principal = {
-          Service = "lambda.amazonaws.com"
-        }
-      }
-    ]
-  })
-
-  tags = {
-    Project     = var.project_name
-    Environment = var.environment
-    ManagedBy   = "terraform"
+  project_name   = var.project_name
+  name           = "catch-processing"
+  environment    = var.environment
+  s3_bucket_name = aws_s3_bucket.data.id
+  s3_bucket_arn  = aws_s3_bucket.data.arn
+  image_tag      = var.catch_processing_image_tag
+  memory_size    = 512
+  timeout        = 300
+  read_prefixes  = ["bronze"]
+  write_prefixes = ["silver"]
+  environment_variables = {
+    SILVER_DLQ_URL = aws_sqs_queue.silver_processing_dlq.url
   }
 }
 
-resource "aws_iam_role_policy_attachment" "lambda_basic_execution" {
-  role       = aws_iam_role.lambda_execution.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+module "catch_analytics" {
+  source = "./modules/lambda-pipeline-stage"
+
+  project_name          = var.project_name
+  name                  = "catch-analytics"
+  environment           = var.environment
+  s3_bucket_name        = aws_s3_bucket.data.id
+  s3_bucket_arn         = aws_s3_bucket.data.arn
+  image_tag             = var.catch_analytics_image_tag
+  memory_size           = 256
+  timeout               = 120
+  read_prefixes         = ["silver"]
+  write_prefixes        = ["gold"]
+  environment_variables = {}
 }
 
-resource "aws_iam_role_policy" "lambda_s3_access" {
-  name = "${var.project_name}-lambda-s3-${var.environment}"
-  role = aws_iam_role.lambda_execution.id
+resource "aws_iam_role_policy" "processing_dlq_access" {
+  name = "catch-processing-dlq-${var.environment}"
+  role = module.catch_processing.lambda_execution_role_name
 
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "s3:ListBucket"
-        ]
-        Resource = [
-          aws_s3_bucket.data.arn
-        ]
-      },
-      {
-        Effect = "Allow"
-        Action = [
-          "s3:GetObject",
-          "s3:PutObject"
-        ]
-        Resource = [
-          "${aws_s3_bucket.data.arn}/bronze/*",
-          "${aws_s3_bucket.data.arn}/silver/*",
-          "${aws_s3_bucket.data.arn}/gold/*"
-        ]
-      },
       {
         Effect = "Allow"
         Action = [
@@ -228,55 +178,39 @@ resource "aws_iam_role_policy" "lambda_s3_access" {
   })
 }
 
-# -----------------------------------------------------------------------------
-# Lambda Function — Serverless compute
-# -----------------------------------------------------------------------------
-resource "aws_lambda_function" "app" {
-  function_name = "${var.project_name}-${var.environment}"
-  role          = aws_iam_role.lambda_execution.arn
-  package_type  = "Image"
-  image_uri     = "${aws_ecr_repository.app.repository_url}:latest"
-  timeout       = 300
-  memory_size   = 512
-
-  environment {
-    variables = {
-      ENVIRONMENT    = var.environment
-      S3_BUCKET_NAME = aws_s3_bucket.data.id
-      LOG_FORMAT     = "json"
-      SILVER_DLQ_URL = aws_sqs_queue.silver_processing_dlq.url
-    }
-  }
-
-  tags = {
-    Project     = var.project_name
-    Environment = var.environment
-    ManagedBy   = "terraform"
-  }
-}
-
-resource "aws_lambda_permission" "allow_data_bucket_invoke" {
-  statement_id  = "AllowExecutionFromDataBucket"
+resource "aws_lambda_permission" "allow_data_bucket_invoke_catch_processing" {
+  statement_id  = "AllowExecutionFromDataBucketCatchProcessing"
   action        = "lambda:InvokeFunction"
-  function_name = aws_lambda_function.app.function_name
+  function_name = module.catch_processing.lambda_function_name
   principal     = "s3.amazonaws.com"
   source_arn    = aws_s3_bucket.data.arn
 }
 
-resource "aws_s3_bucket_notification" "bronze_schedule_to_silver" {
+resource "aws_lambda_permission" "allow_data_bucket_invoke_catch_analytics" {
+  statement_id  = "AllowExecutionFromDataBucketCatchAnalytics"
+  action        = "lambda:InvokeFunction"
+  function_name = module.catch_analytics.lambda_function_name
+  principal     = "s3.amazonaws.com"
+  source_arn    = aws_s3_bucket.data.arn
+}
+
+resource "aws_s3_bucket_notification" "pipeline_triggers" {
   bucket = aws_s3_bucket.data.id
 
   lambda_function {
-    lambda_function_arn = aws_lambda_function.app.arn
+    lambda_function_arn = module.catch_processing.lambda_function_arn
     events              = ["s3:ObjectCreated:*"]
     filter_prefix       = "bronze/schedule_"
   }
 
   lambda_function {
-    lambda_function_arn = aws_lambda_function.app.arn
+    lambda_function_arn = module.catch_analytics.lambda_function_arn
     events              = ["s3:ObjectCreated:*"]
     filter_prefix       = "silver/master_schedule_"
   }
 
-  depends_on = [aws_lambda_permission.allow_data_bucket_invoke]
+  depends_on = [
+    aws_lambda_permission.allow_data_bucket_invoke_catch_processing,
+    aws_lambda_permission.allow_data_bucket_invoke_catch_analytics,
+  ]
 }
