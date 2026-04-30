@@ -412,6 +412,9 @@ def _validate_gold_object(
     except ValidationError as error:
         logger.error("Gold output validation failed for %s: %s", key, error)
         return False
+    except Exception as error:
+        logger.error("Gold output readback failed for %s: %s", key, error)
+        return False
     return True
 
 
@@ -455,7 +458,7 @@ def _cloudfront_distribution_id_from_env() -> str | None:
         return None
     if not distribution_id:
         raise ValueError(
-            f"{_CLOUDFRONT_DISTRIBUTION_ID_ENV_VAR} must not be empty when configured"
+            f"{_CLOUDFRONT_DISTRIBUTION_ID_ENV_VAR} must be a non-empty string when set"
         )
     return distribution_id
 

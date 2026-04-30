@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -462,11 +463,16 @@ def test_terraform_configures_silver_to_gold_trigger():
     terraform = _INFRASTRUCTURE_MAIN_TF.read_text()
 
     assert 'resource "aws_lambda_permission" "allow_data_bucket_invoke"' in terraform
-    assert (
-        'resource "aws_s3_bucket_notification" "bronze_schedule_to_silver"' in terraform
+    assert re.search(
+        r'resource\s+"aws_s3_bucket_notification"\s+"bronze_schedule_to_silver"',
+        terraform,
     )
-    assert 'filter_prefix       = "silver/master_schedule_"' in terraform
-    assert terraform.count('events              = ["s3:ObjectCreated:*"]') >= 2
+    assert re.search(
+        r'lambda_function\s*\{[^}]*events\s*=\s*\["s3:ObjectCreated:\*"\][^}]*'
+        r'filter_prefix\s*=\s*"silver/master_schedule_"',
+        terraform,
+        re.DOTALL,
+    )
 
 
 def test_lambda_handler_reads_event_key_and_bucket(monkeypatch):
