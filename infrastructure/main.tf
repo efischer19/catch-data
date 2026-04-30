@@ -197,13 +197,22 @@ resource "aws_iam_role_policy" "lambda_s3_access" {
       {
         Effect = "Allow"
         Action = [
-          "s3:GetObject",
-          "s3:PutObject",
           "s3:ListBucket"
         ]
         Resource = [
-          aws_s3_bucket.data.arn,
-          "${aws_s3_bucket.data.arn}/*"
+          aws_s3_bucket.data.arn
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:GetObject",
+          "s3:PutObject"
+        ]
+        Resource = [
+          "${aws_s3_bucket.data.arn}/bronze/*",
+          "${aws_s3_bucket.data.arn}/silver/*",
+          "${aws_s3_bucket.data.arn}/gold/*"
         ]
       },
       {
@@ -261,6 +270,12 @@ resource "aws_s3_bucket_notification" "bronze_schedule_to_silver" {
     lambda_function_arn = aws_lambda_function.app.arn
     events              = ["s3:ObjectCreated:*"]
     filter_prefix       = "bronze/schedule_"
+  }
+
+  lambda_function {
+    lambda_function_arn = aws_lambda_function.app.arn
+    events              = ["s3:ObjectCreated:*"]
+    filter_prefix       = "silver/master_schedule_"
   }
 
   depends_on = [aws_lambda_permission.allow_data_bucket_invoke]

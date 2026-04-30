@@ -71,7 +71,9 @@ frontend needs direct browser access to S3-hosted objects.
 
 Bronze schedule uploads trigger the Silver processing Lambda via an S3 event
 notification on `s3:ObjectCreated:*` with the `bronze/schedule_` key prefix.
-This keeps Bronze → Silver processing event-driven while avoiding Lambda
+Silver master schedule uploads also trigger the Gold analytics Lambda on
+`s3:ObjectCreated:*` with the `silver/master_schedule_` key prefix. This keeps
+the Bronze → Silver → Gold pipeline event-driven while avoiding Lambda
 invocations for Bronze boxscore and content uploads. Terraform also provisions
 an SQS dead-letter queue for the Silver Lambda and exposes its URL to the
 function as `SILVER_DLQ_URL` so failed invocation events can be captured for
