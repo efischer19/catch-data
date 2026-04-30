@@ -34,7 +34,7 @@ All resources are managed in Terraform — see `main.tf` and
 ## S3 Belt-and-Suspenders Bucket Policy
 
 The S3 bucket policy adds a second layer of access control on top of IAM
-policies, following the principle of defence in depth.
+policies, following the principle of defense in depth.
 
 - [ ] Bucket policy explicitly **denies** Silver Lambda (`catch-processing`)
       `s3:PutObject` and `s3:DeleteObject` on `bronze/*` (Bronze immutability).
