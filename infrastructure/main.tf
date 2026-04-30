@@ -16,7 +16,14 @@
 # simplicity. IAM policies can restrict access per prefix if needed.
 # -----------------------------------------------------------------------------
 locals {
-  data_bucket_name = "catch-data-${var.environment}"
+  data_bucket_name                     = "catch-data-${var.environment}"
+  seconds_per_day                      = 24 * 60 * 60
+  silver_processing_dlq_retention_days = 14
+  # SQS supports up to 14 days of message retention; keep failed Silver events
+  # available for the full window to maximize replay/debugging time.
+  silver_processing_dlq_retention_seconds = (
+    local.silver_processing_dlq_retention_days * local.seconds_per_day
+  )
 }
 
 resource "aws_s3_bucket" "data" {
@@ -108,7 +115,7 @@ resource "aws_s3_bucket_cors_configuration" "data" {
 
 resource "aws_sqs_queue" "silver_processing_dlq" {
   name                      = "${var.project_name}-silver-dlq-${var.environment}"
-  message_retention_seconds = 1209600
+  message_retention_seconds = local.silver_processing_dlq_retention_seconds
 
   tags = {
     Project     = var.project_name
@@ -151,7 +158,7 @@ module "catch_analytics" {
   environment_variables = {}
 }
 
-resource "aws_iam_role_policy" "catch_processing_dlq_access" {
+resource "aws_iam_role_policy" "processing_dlq_access" {
   name = "catch-processing-dlq-${var.environment}"
   role = module.catch_processing.lambda_execution_role_name
 

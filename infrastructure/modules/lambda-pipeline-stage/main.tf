@@ -1,5 +1,13 @@
 locals {
   name_with_environment = "${var.name}-${var.environment}"
+  read_object_arns = [
+    for prefix in var.read_prefixes :
+    "${var.s3_bucket_arn}/${trim(prefix, "/")}/*"
+  ]
+  write_object_arns = [
+    for prefix in var.write_prefixes :
+    "${var.s3_bucket_arn}/${trim(prefix, "/")}/*"
+  ]
 
   common_tags = {
     Project     = var.project_name
@@ -30,7 +38,7 @@ resource "aws_ecr_lifecycle_policy" "this" {
         selection = {
           tagStatus   = "untagged"
           countType   = "imageCountMoreThan"
-          countNumber = 10
+          countNumber = var.untagged_image_retention_count
         }
         action = {
           type = "expire"
@@ -76,20 +84,14 @@ resource "aws_iam_role_policy" "s3_access" {
         Action = [
           "s3:GetObject"
         ]
-        Resource = [
-          for prefix in var.read_prefixes :
-          "${var.s3_bucket_arn}/${trim(prefix, "/")}/*"
-        ]
+        Resource = local.read_object_arns
       },
       {
         Effect = "Allow"
         Action = [
           "s3:PutObject"
         ]
-        Resource = [
-          for prefix in var.write_prefixes :
-          "${var.s3_bucket_arn}/${trim(prefix, "/")}/*"
-        ]
+        Resource = local.write_object_arns
       }
     ]
   })

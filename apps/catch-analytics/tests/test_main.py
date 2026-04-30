@@ -464,9 +464,21 @@ def test_terraform_configures_split_pipeline_lambdas():
     terraform = _INFRASTRUCTURE_MAIN_TF.read_text()
     module_dir = _INFRASTRUCTURE_MAIN_TF.parent / "modules" / "lambda-pipeline-stage"
     module_main = (module_dir / "main.tf").read_text()
+    processing_module_match = re.search(
+        r'^module\s+"catch_processing"\s*\{(?P<body>.*?)^}',
+        terraform,
+        re.DOTALL | re.MULTILINE,
+    )
+    analytics_module_match = re.search(
+        r'^module\s+"catch_analytics"\s*\{(?P<body>.*?)^}',
+        terraform,
+        re.DOTALL | re.MULTILINE,
+    )
 
     assert 'module "catch_processing"' in terraform
     assert 'module "catch_analytics"' in terraform
+    assert processing_module_match is not None
+    assert analytics_module_match is not None
     assert (
         'resource "aws_lambda_permission" "allow_data_bucket_invoke_catch_processing"'
         in terraform
@@ -485,10 +497,16 @@ def test_terraform_configures_split_pipeline_lambdas():
         terraform,
         re.DOTALL,
     )
-    assert re.search(r"memory_size\s*=\s*512", terraform)
-    assert re.search(r"timeout\s*=\s*300", terraform)
-    assert re.search(r"memory_size\s*=\s*256", terraform)
-    assert re.search(r"timeout\s*=\s*120", terraform)
+    processing_module = processing_module_match.group("body")
+    analytics_module = analytics_module_match.group("body")
+    assert re.search(r"memory_size\s*=\s*512", processing_module)
+    assert re.search(r"timeout\s*=\s*300", processing_module)
+    assert re.search(r'read_prefixes\s*=\s*\["bronze"\]', processing_module)
+    assert re.search(r'write_prefixes\s*=\s*\["silver"\]', processing_module)
+    assert re.search(r"memory_size\s*=\s*256", analytics_module)
+    assert re.search(r"timeout\s*=\s*120", analytics_module)
+    assert re.search(r'read_prefixes\s*=\s*\["silver"\]', analytics_module)
+    assert re.search(r'write_prefixes\s*=\s*\["gold"\]', analytics_module)
     assert re.search(r'package_type\s*=\s*"Image"', module_main)
     assert (
         re.search(
