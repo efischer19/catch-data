@@ -160,6 +160,7 @@ class GoldGameSummary(BaseModel):
         ge=1,
         description="Doubleheader game number (1 for single games)",
     )
+    venue_name: str = Field(..., description="Venue name for the scheduled game")
     home_team: GoldTeamInfo
     away_team: GoldTeamInfo
     score: GoldScore | None = Field(

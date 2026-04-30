@@ -167,12 +167,18 @@
           "description": "Game status: Final, Postponed, Scheduled, In Progress, etc.",
           "title": "Status",
           "type": "string"
+        },
+        "venue_name": {
+          "description": "Venue name for the scheduled game",
+          "title": "Venue Name",
+          "type": "string"
         }
       },
       "required": [
         "game_pk",
         "date",
         "status",
+        "venue_name",
         "home_team",
         "away_team"
       ],
