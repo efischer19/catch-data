@@ -26,6 +26,7 @@ Alarms and notifications are delivered via SNS (email).  See
 exception in the last 24 hours.
 
 **Likely causes**:
+
 - Malformed Bronze file (schema change in the MLB Stats API)
 - S3 permission error (check IAM role for `catch-processing-{env}`)
 - Cold-start timeout (Lambda memory or timeout too low)
@@ -40,6 +41,7 @@ exception in the last 24 hours.
 exception in the last 24 hours.
 
 **Likely causes**:
+
 - Missing or corrupt Silver master schedule
 - CloudFront invalidation failure
 - Gold validation failure (broken Pydantic model round-trip)
@@ -58,7 +60,8 @@ The 36-hour window accounts for late West Coast games and pipeline execution
 time.
 
 **Actions**:
-1. [Check ingestion logs on the Mac Mini](#check-ingestion-logs-on-the-mac-mini)
+
+1. [Check ingestion logs on the Mac Mini](#how-to-check-ingestion-logs-on-the-mac-mini)
 2. If ingestion ran but Silver/Gold Lambdas did not trigger, check the S3
    notification configuration in the AWS console.
 3. [Re-run ingestion manually](#re-run-ingestion-for-a-specific-date), then
@@ -111,6 +114,7 @@ poetry run python -m app.main ingest-games --date 2026-07-04 --bucket "$S3_BUCKE
 ```
 
 Exit codes:
+
 - `0` — all games succeeded
 - `1` — partial failure (some games failed, check `failed_games.json`)
 - `2` — complete failure (no games succeeded, or schedule unavailable)
@@ -140,6 +144,7 @@ cat /tmp/silver-response.json
 
 1. Open **Lambda → catch-processing-{env} → Test**.
 2. Use the following test event payload:
+
    ```json
    {
      "Records": [
@@ -152,6 +157,7 @@ cat /tmp/silver-response.json
      ]
    }
    ```
+
 3. Click **Test** and review the response for `games_written` and
    `processing_errors_count`.
 
@@ -176,6 +182,7 @@ cat /tmp/gold-response.json
 
 1. Open **Lambda → catch-analytics-{env} → Test**.
 2. Use the following test event payload:
+
    ```json
    {
      "Records": [
@@ -188,6 +195,7 @@ cat /tmp/gold-response.json
      ]
    }
    ```
+
 3. Click **Test** and review `files_written`, `files_validated`, and
    `files_failed`.
 
