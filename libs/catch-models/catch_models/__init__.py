@@ -14,6 +14,7 @@ from catch_models.bronze import (
 )
 from catch_models.gold import (
     GoldBoxscoreSummary,
+    GoldGameDateGroup,
     GoldGameSummary,
     GoldScore,
     GoldTeamInfo,
@@ -36,6 +37,7 @@ __all__ = [
     "CatchPaths",
     "DataCompleteness",
     "GoldBoxscoreSummary",
+    "GoldGameDateGroup",
     "GoldGameSummary",
     "GoldMetric",
     "GoldScore",

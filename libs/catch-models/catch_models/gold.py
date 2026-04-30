@@ -23,8 +23,16 @@ See ADR-018 (Medallion Architecture) for layer context.
 from __future__ import annotations
 
 from datetime import UTC, datetime
+from datetime import date as calendar_date
 
-from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_serializer,
+    field_validator,
+    model_validator,
+)
 
 _GOLD_CONFIG = ConfigDict(
     extra="forbid",
@@ -223,6 +231,53 @@ class GoldTeamSchedule(_GoldBaseModel):
     )
 
 
+class GoldGameDateGroup(BaseModel):
+    """Upcoming-games helper model for frontend-friendly date sections."""
+
+    model_config = _GOLD_CONFIG
+
+    date: calendar_date = Field(
+        ...,
+        description="UTC calendar date for the grouped games",
+    )
+    games: list[GoldGameSummary] = Field(
+        default_factory=list,
+        description="Games on this UTC calendar date, ordered by first pitch ascending",
+    )
+
+
+def _group_games_by_date(games: list[GoldGameSummary]) -> list[GoldGameDateGroup]:
+    grouped_games: list[GoldGameDateGroup] = []
+    current_date: calendar_date | None = None
+    current_games: list[GoldGameSummary] = []
+
+    for game in games:
+        game_date = game.date.date()
+        if current_date != game_date:
+            if current_date is not None:
+                grouped_games.append(
+                    GoldGameDateGroup(date=current_date, games=current_games)
+                )
+            current_date = game_date
+            current_games = [game]
+        else:
+            current_games.append(game)
+
+    if current_date is not None:
+        grouped_games.append(GoldGameDateGroup(date=current_date, games=current_games))
+
+    return grouped_games
+
+
+def _date_group_signature(
+    date_groups: list[GoldGameDateGroup],
+) -> list[tuple[calendar_date, tuple[int, ...]]]:
+    return [
+        (date_group.date, tuple(game.game_pk for game in date_group.games))
+        for date_group in date_groups
+    ]
+
+
 class GoldUpcomingGames(_GoldBaseModel):
     """Consolidated upcoming and recently completed games across all teams.
 
@@ -230,8 +285,10 @@ class GoldUpcomingGames(_GoldBaseModel):
     Contains games in a rolling window (yesterday through 7 days out) to
     keep the file size small and data transfer costs low.
 
-    The window bounds are determined by the analytics Lambda at generation
-    time; this model does not enforce them so tests remain deterministic.
+    The analytics Lambda determines the rolling window and ordering.  This
+    model exposes both the flat ordered game list and a date-grouped view
+    so the frontend can render day sections without additional client-side
+    reshaping.
     """
 
     last_updated: datetime = Field(
@@ -244,3 +301,19 @@ class GoldUpcomingGames(_GoldBaseModel):
             "Games in the rolling window (yesterday … +7 days), ordered by date"
         ),
     )
+    dates: list[GoldGameDateGroup] = Field(
+        default_factory=list,
+        description="The same games grouped by UTC calendar date for easy rendering",
+    )
+
+    @model_validator(mode="after")
+    def _populate_dates_from_games(self) -> GoldUpcomingGames:
+        grouped_games = _group_games_by_date(self.games)
+        if not self.dates:
+            self.dates = grouped_games
+            return self
+
+        if _date_group_signature(self.dates) != _date_group_signature(grouped_games):
+            raise ValueError("dates must match the grouped games list")
+
+        return self

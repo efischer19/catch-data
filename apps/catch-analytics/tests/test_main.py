@@ -5,7 +5,12 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime
 
-from catch_models import CatchPaths, GoldTeamSchedule, SilverMasterSchedule
+from catch_models import (
+    CatchPaths,
+    GoldTeamSchedule,
+    GoldUpcomingGames,
+    SilverMasterSchedule,
+)
 from click.testing import CliRunner
 
 from app import main
@@ -76,6 +81,28 @@ def _silver_game(**overrides) -> dict:
     return payload
 
 
+def _scheduled_silver_game(**overrides) -> dict:
+    return _silver_game(
+        away_runs=None,
+        away_hits=None,
+        away_errors=None,
+        home_runs=None,
+        home_hits=None,
+        home_errors=None,
+        winning_pitcher_name=None,
+        losing_pitcher_name=None,
+        save_pitcher_name=None,
+        condensed_game_url=None,
+        status="Scheduled",
+        status_detail="Scheduled",
+        current_inning=None,
+        inning_state=None,
+        innings=None,
+        data_completeness="none",
+        **overrides,
+    )
+
+
 def _master_schedule_payload(games: list[dict]) -> dict:
     return {
         "year": 2026,
@@ -89,27 +116,11 @@ def test_build_team_schedule_filters_sorts_and_keeps_doubleheaders():
     master_schedule = SilverMasterSchedule.model_validate(
         _master_schedule_payload(
             [
-                _silver_game(
+                _scheduled_silver_game(
                     gamePk=745679,
                     date="2026-07-04T23:05:00Z",
                     game_number=2,
                     doubleheader_type="Y",
-                    status="Scheduled",
-                    status_detail="Scheduled",
-                    current_inning=None,
-                    inning_state=None,
-                    innings=None,
-                    away_runs=None,
-                    away_hits=None,
-                    away_errors=None,
-                    home_runs=None,
-                    home_hits=None,
-                    home_errors=None,
-                    winning_pitcher_name=None,
-                    losing_pitcher_name=None,
-                    save_pitcher_name=None,
-                    condensed_game_url=None,
-                    data_completeness="none",
                 ),
                 _silver_game(
                     gamePk=799000,
@@ -123,7 +134,7 @@ def test_build_team_schedule_filters_sorts_and_keeps_doubleheaders():
                     venue_name="Dodger Stadium",
                 ),
                 _silver_game(),
-                _silver_game(
+                _scheduled_silver_game(
                     gamePk=745100,
                     date="2026-03-28T17:10:00Z",
                     away_team_id=147,
@@ -134,22 +145,6 @@ def test_build_team_schedule_filters_sorts_and_keeps_doubleheaders():
                     home_team_abbreviation="NYM",
                     venue_id=3289,
                     venue_name="Citi Field",
-                    away_runs=None,
-                    away_hits=None,
-                    away_errors=None,
-                    home_runs=None,
-                    home_hits=None,
-                    home_errors=None,
-                    winning_pitcher_name=None,
-                    losing_pitcher_name=None,
-                    save_pitcher_name=None,
-                    condensed_game_url=None,
-                    status="Scheduled",
-                    status_detail="Scheduled",
-                    current_inning=None,
-                    inning_state=None,
-                    innings=None,
-                    data_completeness="none",
                 ),
             ]
         )
@@ -174,7 +169,164 @@ def test_build_team_schedule_filters_sorts_and_keeps_doubleheaders():
     assert "boxscore_summary" not in dumped["games"][2]
 
 
-def test_generate_team_schedule_files_writes_all_30_outputs():
+def test_build_upcoming_games_filters_sorts_groups_and_keeps_boundaries():
+    master_schedule = SilverMasterSchedule.model_validate(
+        _master_schedule_payload(
+            [
+                _scheduled_silver_game(
+                    gamePk=745001,
+                    date="2026-07-03T23:59:00Z",
+                ),
+                _silver_game(),
+                _scheduled_silver_game(
+                    gamePk=745679,
+                    date="2026-07-05T16:05:00Z",
+                    away_team_id=121,
+                    away_team_name="New York Mets",
+                    away_team_abbreviation="NYM",
+                    home_team_id=120,
+                    home_team_name="Washington Nationals",
+                    home_team_abbreviation="WSH",
+                    venue_id=3309,
+                    venue_name="Nationals Park",
+                ),
+                _scheduled_silver_game(
+                    gamePk=745680,
+                    date="2026-07-05T23:05:00Z",
+                    away_team_id=119,
+                    away_team_name="Los Angeles Dodgers",
+                    away_team_abbreviation="LAD",
+                    home_team_id=112,
+                    home_team_name="Chicago Cubs",
+                    home_team_abbreviation="CHC",
+                    venue_id=22,
+                    venue_name="Dodger Stadium",
+                ),
+                _scheduled_silver_game(
+                    gamePk=745999,
+                    date="2026-07-12T18:05:00Z",
+                    game_type="F",
+                    away_team_id=111,
+                    away_team_name="Boston Red Sox",
+                    away_team_abbreviation="BOS",
+                    home_team_id=147,
+                    home_team_name="New York Yankees",
+                    home_team_abbreviation="NYY",
+                    venue_id=3313,
+                    venue_name="Yankee Stadium",
+                ),
+                _scheduled_silver_game(
+                    gamePk=746000,
+                    date="2026-07-13T00:05:00Z",
+                ),
+            ]
+        )
+    )
+
+    upcoming = main.build_upcoming_games(
+        master_schedule,
+        execution_time=_FIXED_NOW,
+        lookback_days=1,
+        lookahead_days=7,
+    )
+    dumped = upcoming.model_dump(mode="json", exclude_none=True)
+
+    assert [game["game_pk"] for game in dumped["games"]] == [
+        745678,
+        745679,
+        745680,
+        745999,
+    ]
+    assert dumped["games"][0]["score"] == {"away": 3, "home": 5}
+    assert [group["date"] for group in dumped["dates"]] == [
+        "2026-07-04",
+        "2026-07-05",
+        "2026-07-12",
+    ]
+    assert [game["game_pk"] for game in dumped["dates"][1]["games"]] == [745679, 745680]
+
+
+def test_build_upcoming_games_uses_env_configurable_window(monkeypatch):
+    master_schedule = SilverMasterSchedule.model_validate(
+        _master_schedule_payload(
+            [
+                _silver_game(gamePk=745677, date="2026-07-04T01:05:00Z"),
+                _silver_game(gamePk=745678, date="2026-07-05T17:05:00Z"),
+                _silver_game(gamePk=745679, date="2026-07-06T17:05:00Z"),
+                _silver_game(gamePk=745680, date="2026-07-07T17:05:00Z"),
+            ]
+        )
+    )
+    monkeypatch.setenv(main._UPCOMING_LOOKBACK_DAYS_ENV_VAR, "0")
+    monkeypatch.setenv(main._UPCOMING_LOOKAHEAD_DAYS_ENV_VAR, "1")
+
+    upcoming = main.build_upcoming_games(master_schedule, execution_time=_FIXED_NOW)
+
+    assert [game.game_pk for game in upcoming.games] == [745678, 745679]
+
+
+def test_build_upcoming_games_handles_no_games_today():
+    master_schedule = SilverMasterSchedule.model_validate(
+        _master_schedule_payload(
+            [
+                _silver_game(gamePk=745677, date="2026-07-04T17:05:00Z"),
+                _scheduled_silver_game(
+                    gamePk=745679,
+                    date="2026-07-06T17:05:00Z",
+                ),
+            ]
+        )
+    )
+
+    upcoming = main.build_upcoming_games(
+        master_schedule,
+        execution_time=_FIXED_NOW,
+        lookback_days=1,
+        lookahead_days=1,
+    )
+    dumped = upcoming.model_dump(mode="json", exclude_none=True)
+
+    assert [group["date"] for group in dumped["dates"]] == ["2026-07-04", "2026-07-06"]
+    assert "2026-07-05" not in {group["date"] for group in dumped["dates"]}
+
+
+def test_build_upcoming_games_handles_end_of_season_window():
+    season_end_now = datetime(2026, 10, 1, 12, 0, tzinfo=UTC)
+    master_schedule = SilverMasterSchedule.model_validate(
+        _master_schedule_payload(
+            [
+                _silver_game(gamePk=800001, date="2026-09-29T20:05:00Z"),
+                _silver_game(gamePk=800002, date="2026-09-30T20:05:00Z"),
+                _scheduled_silver_game(
+                    gamePk=800003,
+                    date="2026-10-03T20:05:00Z",
+                    game_type="F",
+                ),
+                _scheduled_silver_game(
+                    gamePk=800004,
+                    date="2026-10-08T20:05:00Z",
+                    game_type="F",
+                ),
+                _scheduled_silver_game(
+                    gamePk=800005,
+                    date="2026-10-09T20:05:00Z",
+                    game_type="F",
+                ),
+            ]
+        )
+    )
+
+    upcoming = main.build_upcoming_games(
+        master_schedule,
+        execution_time=season_end_now,
+        lookback_days=1,
+        lookahead_days=7,
+    )
+
+    assert [game.game_pk for game in upcoming.games] == [800002, 800003, 800004]
+
+
+def test_generate_team_schedule_files_writes_all_30_outputs_and_upcoming_file():
     fake_s3 = _FakeS3Client(
         {
             CatchPaths.silver_master_schedule_key(2026): _json_bytes(
@@ -191,8 +343,9 @@ def test_generate_team_schedule_files_writes_all_30_outputs():
     )
 
     assert result["team_schedule_count"] == 30
-    assert len(result["output_keys"]) == 30
-    assert len(fake_s3.writes) == 30
+    assert result["upcoming_games_count"] == 1
+    assert len(result["output_keys"]) == 31
+    assert len(fake_s3.writes) == 31
 
     yankees = GoldTeamSchedule.model_validate_json(
         fake_s3.writes[CatchPaths.gold_team_key(147)]
@@ -200,11 +353,16 @@ def test_generate_team_schedule_files_writes_all_30_outputs():
     angels = GoldTeamSchedule.model_validate_json(
         fake_s3.writes[CatchPaths.gold_team_key(108)]
     )
+    upcoming = GoldUpcomingGames.model_validate_json(
+        fake_s3.writes[CatchPaths.gold_upcoming_games_key()]
+    )
 
     assert len(yankees.games) == 1
     assert angels.games == []
     assert angels.team_name == "Los Angeles Angels"
     assert angels.team_abbreviation == "LAA"
+    assert len(upcoming.games) == 1
+    assert len(upcoming.dates) == 1
 
 
 def test_lambda_handler_reads_event_key_and_bucket(monkeypatch):
@@ -235,7 +393,9 @@ def test_lambda_handler_reads_event_key_and_bucket(monkeypatch):
     assert result["bucket"] == "event-bucket"
     assert result["year"] == 2026
     assert result["team_schedule_count"] == 30
+    assert result["upcoming_games_count"] == 1
     assert CatchPaths.gold_team_key(147) in result["output_keys"]
+    assert CatchPaths.gold_upcoming_games_key() in result["output_keys"]
 
 
 def test_cli_aggregate_outputs_json_summary(monkeypatch):
@@ -256,6 +416,7 @@ def test_cli_aggregate_outputs_json_summary(monkeypatch):
 
     assert result.exit_code == 0
     assert json.loads(result.output)["team_schedule_count"] == 30
+    assert json.loads(result.output)["upcoming_games_count"] == 1
 
 
 def test_shared_content_fixture_is_available(sample_content):

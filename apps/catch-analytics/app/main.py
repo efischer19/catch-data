@@ -1,4 +1,4 @@
-"""Gold layer Lambda for generating team schedule JSON from Silver data."""
+"""Gold layer Lambda for generating Gold schedule JSON from Silver data."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ import logging
 import os
 import re
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime, timedelta
 from typing import Any
 from urllib.parse import unquote_plus
 
@@ -20,6 +20,7 @@ from catch_models import (
     GoldScore,
     GoldTeamInfo,
     GoldTeamSchedule,
+    GoldUpcomingGames,
     SilverMasterSchedule,
 )
 
@@ -28,6 +29,10 @@ logger = logging.getLogger(__name__)
 _MASTER_SCHEDULE_KEY_RE = re.compile(
     r"(^|/)silver/master_schedule_(?P<year>\d{4})\.json$"
 )
+_UPCOMING_LOOKBACK_DAYS_ENV_VAR = "GOLD_UPCOMING_GAMES_LOOKBACK_DAYS"
+_UPCOMING_LOOKAHEAD_DAYS_ENV_VAR = "GOLD_UPCOMING_GAMES_LOOKAHEAD_DAYS"
+_DEFAULT_UPCOMING_LOOKBACK_DAYS = 1
+_DEFAULT_UPCOMING_LOOKAHEAD_DAYS = 7
 
 
 @dataclass(frozen=True)
@@ -223,6 +228,48 @@ def _team_name_and_abbreviation(
     return context.name, context.abbreviation
 
 
+def _validate_non_negative_days(label: str, value: int) -> int:
+    if value < 0:
+        raise ValueError(f"{label} must be non-negative")
+    return value
+
+
+def _window_days_from_env(env_var: str, default: int) -> int:
+    raw_value = os.environ.get(env_var)
+    if raw_value is None:
+        return default
+    if raw_value == "":
+        raise ValueError(f"{env_var} cannot be an empty string")
+    try:
+        parsed_value = int(raw_value)
+    except ValueError as error:
+        raise ValueError(f"{env_var} must be an integer") from error
+    return _validate_non_negative_days(env_var, parsed_value)
+
+
+def _upcoming_window_bounds(
+    execution_time: datetime,
+    lookback_days: int,
+    lookahead_days: int,
+) -> tuple[date, date]:
+    anchor_date = execution_time.astimezone(UTC).date()
+    return (
+        anchor_date - timedelta(days=lookback_days),
+        anchor_date + timedelta(days=lookahead_days),
+    )
+
+
+def _resolve_window_days(
+    label: str,
+    explicit_value: int | None,
+    env_var: str,
+    default: int,
+) -> int:
+    if explicit_value is not None:
+        return _validate_non_negative_days(label, explicit_value)
+    return _window_days_from_env(env_var, default)
+
+
 def build_team_schedule(
     master_schedule: SilverMasterSchedule,
     team_id: int,
@@ -261,6 +308,45 @@ def build_all_team_schedules(
     ]
 
 
+def build_upcoming_games(
+    master_schedule: SilverMasterSchedule,
+    execution_time: datetime | None = None,
+    lookback_days: int | None = None,
+    lookahead_days: int | None = None,
+) -> GoldUpcomingGames:
+    """Build the rolling-window Gold upcoming-games view."""
+    timestamp = execution_time or current_utc()
+    resolved_lookback_days = _resolve_window_days(
+        "lookback_days",
+        lookback_days,
+        _UPCOMING_LOOKBACK_DAYS_ENV_VAR,
+        _DEFAULT_UPCOMING_LOOKBACK_DAYS,
+    )
+    resolved_lookahead_days = _resolve_window_days(
+        "lookahead_days",
+        lookahead_days,
+        _UPCOMING_LOOKAHEAD_DAYS_ENV_VAR,
+        _DEFAULT_UPCOMING_LOOKAHEAD_DAYS,
+    )
+    window_start, window_end = _upcoming_window_bounds(
+        timestamp,
+        resolved_lookback_days,
+        resolved_lookahead_days,
+    )
+    filtered_games = sorted(
+        (
+            game
+            for game in master_schedule.games
+            if window_start <= game.date.date() <= window_end
+        ),
+        key=lambda game: (game.date, game.game_number, game.game_pk),
+    )
+    return GoldUpcomingGames(
+        last_updated=timestamp,
+        games=[_build_gold_game_summary(game) for game in filtered_games],
+    )
+
+
 def write_team_schedules_to_s3(
     s3_client: Any,
     bucket: str,
@@ -286,21 +372,45 @@ def write_team_schedules_to_s3(
     return output_keys
 
 
+def write_upcoming_games_to_s3(
+    s3_client: Any,
+    bucket: str,
+    upcoming_games: GoldUpcomingGames,
+) -> str:
+    """Serialize validated Gold upcoming games and write them to S3."""
+    key = CatchPaths.gold_upcoming_games_key()
+    body = json.dumps(
+        upcoming_games.model_dump(mode="json", exclude_none=True),
+        separators=(",", ":"),
+    ).encode("utf-8")
+    s3_client.put_object(
+        Bucket=bucket,
+        Key=key,
+        Body=body,
+        ContentType="application/json",
+    )
+    return key
+
+
 def generate_team_schedule_files(
     s3_client: Any,
     bucket: str,
     year: int,
     execution_time: datetime | None = None,
 ) -> dict[str, Any]:
-    """Build and write the Gold team schedule JSON files for one season."""
+    """Build and write the Gold team schedules and upcoming-games view."""
     master_schedule = read_master_schedule_from_s3(s3_client, bucket, year)
-    team_schedules = build_all_team_schedules(master_schedule, execution_time)
+    timestamp = execution_time or current_utc()
+    team_schedules = build_all_team_schedules(master_schedule, timestamp)
+    upcoming_games = build_upcoming_games(master_schedule, timestamp)
     output_keys = write_team_schedules_to_s3(s3_client, bucket, team_schedules)
+    output_keys.append(write_upcoming_games_to_s3(s3_client, bucket, upcoming_games))
 
     return {
         "bucket": bucket,
         "output_keys": output_keys,
         "team_schedule_count": len(team_schedules),
+        "upcoming_games_count": len(upcoming_games.games),
         "year": master_schedule.year,
     }
 
@@ -328,7 +438,7 @@ def cli():
     help="S3 bucket containing Silver and Gold objects.",
 )
 def aggregate(year: int, bucket: str | None):
-    """Build team schedule JSON files from the Silver master schedule."""
+    """Build Gold JSON files from the Silver master schedule."""
     if not bucket:
         raise click.ClickException("Provide --bucket or set S3_BUCKET_NAME")
 
