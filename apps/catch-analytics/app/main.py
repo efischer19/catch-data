@@ -259,6 +259,17 @@ def _upcoming_window_bounds(
     )
 
 
+def _resolve_window_days(
+    label: str,
+    explicit_value: int | None,
+    env_var: str,
+    default: int,
+) -> int:
+    if explicit_value is not None:
+        return _validate_non_negative_days(label, explicit_value)
+    return _window_days_from_env(env_var, default)
+
+
 def build_team_schedule(
     master_schedule: SilverMasterSchedule,
     team_id: int,
@@ -305,21 +316,17 @@ def build_upcoming_games(
 ) -> GoldUpcomingGames:
     """Build the rolling-window Gold upcoming-games view."""
     timestamp = execution_time or current_utc()
-    resolved_lookback_days = (
-        _validate_non_negative_days("lookback_days", lookback_days)
-        if lookback_days is not None
-        else _window_days_from_env(
-            _UPCOMING_LOOKBACK_DAYS_ENV_VAR,
-            _DEFAULT_UPCOMING_LOOKBACK_DAYS,
-        )
+    resolved_lookback_days = _resolve_window_days(
+        "lookback_days",
+        lookback_days,
+        _UPCOMING_LOOKBACK_DAYS_ENV_VAR,
+        _DEFAULT_UPCOMING_LOOKBACK_DAYS,
     )
-    resolved_lookahead_days = (
-        _validate_non_negative_days("lookahead_days", lookahead_days)
-        if lookahead_days is not None
-        else _window_days_from_env(
-            _UPCOMING_LOOKAHEAD_DAYS_ENV_VAR,
-            _DEFAULT_UPCOMING_LOOKAHEAD_DAYS,
-        )
+    resolved_lookahead_days = _resolve_window_days(
+        "lookahead_days",
+        lookahead_days,
+        _UPCOMING_LOOKAHEAD_DAYS_ENV_VAR,
+        _DEFAULT_UPCOMING_LOOKAHEAD_DAYS,
     )
     window_start, window_end = _upcoming_window_bounds(
         timestamp,

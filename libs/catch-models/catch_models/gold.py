@@ -270,6 +270,15 @@ def _group_games_by_date(games: list[GoldGameSummary]) -> list[GoldGameDateGroup
     return grouped_games
 
 
+def _date_group_signature(
+    date_groups: list[GoldGameDateGroup],
+) -> list[tuple[calendar_date, tuple[int, ...]]]:
+    return [
+        (date_group.date, tuple(game.game_pk for game in date_group.games))
+        for date_group in date_groups
+    ]
+
+
 class GoldUpcomingGames(_GoldBaseModel):
     """Consolidated upcoming and recently completed games across all teams.
 
@@ -305,7 +314,7 @@ class GoldUpcomingGames(_GoldBaseModel):
             self.dates = grouped_games
             return self
 
-        if self.dates != grouped_games:
+        if _date_group_signature(self.dates) != _date_group_signature(grouped_games):
             raise ValueError("dates must match the grouped games list")
 
         return self
