@@ -8,7 +8,9 @@ This application implements the **Gold** (analytics) stage of the
 [medallion architecture](../../meta/adr/ADR-018-medallion_architecture.md).
 It reads the validated Silver master schedule from S3 and writes one
 frontend-ready Gold schedule JSON file per MLB team plus a rolling-window
-`gold/upcoming_games.json` view for the frontend "Today's Slate".
+`gold/upcoming_games.json` view for the frontend "Today's Slate". After
+writing all Gold files, the Lambda reads each one back and validates it
+against the Gold Pydantic models before optionally invalidating CloudFront.
 
 **Data flow:** S3 `silver/master_schedule_{year}.json` → Transform →
 `gold/team_{team_id}.json` and `gold/upcoming_games.json`
@@ -28,6 +30,9 @@ poetry run catch-analytics aggregate \
     --year 2026 \
     --bucket catch-data-data-dev
 ```
+
+Set `CLOUDFRONT_DISTRIBUTION_ID` to trigger a cache invalidation for the
+written Gold paths after validation succeeds.
 
 ## Development
 

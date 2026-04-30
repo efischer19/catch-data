@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import json
 from datetime import UTC, datetime
+from pathlib import Path
 
+import pytest
 from catch_models import (
     CatchPaths,
     GoldTeamSchedule,
@@ -16,6 +18,9 @@ from click.testing import CliRunner
 from app import main
 
 _FIXED_NOW = datetime(2026, 7, 5, 12, 0, tzinfo=UTC)
+_INFRASTRUCTURE_MAIN_TF = (
+    Path(__file__).resolve().parents[3] / "infrastructure" / "main.tf"
+)
 
 
 class _Body:
@@ -27,17 +32,36 @@ class _Body:
 
 
 class _FakeS3Client:
-    def __init__(self, objects: dict[str, bytes]):
+    def __init__(
+        self,
+        objects: dict[str, bytes],
+        *,
+        read_overrides: dict[str, bytes] | None = None,
+    ):
         self.objects = objects
+        self.read_overrides = read_overrides or {}
         self.writes: dict[str, bytes] = {}
 
     def get_object(self, Bucket: str, Key: str) -> dict:
         del Bucket
+        if Key in self.read_overrides:
+            return {"Body": _Body(self.read_overrides[Key])}
+        if Key in self.writes:
+            return {"Body": _Body(self.writes[Key])}
         return {"Body": _Body(self.objects[Key])}
 
     def put_object(self, Bucket: str, Key: str, Body: bytes, ContentType: str) -> None:
         del Bucket, ContentType
         self.writes[Key] = Body
+
+
+class _FakeCloudFrontClient:
+    def __init__(self):
+        self.invalidations: list[dict] = []
+
+    def create_invalidation(self, **kwargs) -> dict:
+        self.invalidations.append(kwargs)
+        return {"Invalidation": {"Id": "INV123"}}
 
 
 def _json_bytes(payload: dict) -> bytes:
@@ -344,6 +368,9 @@ def test_generate_team_schedule_files_writes_all_30_outputs_and_upcoming_file():
 
     assert result["team_schedule_count"] == 30
     assert result["upcoming_games_count"] == 1
+    assert result["files_written"] == 31
+    assert result["files_validated"] == 31
+    assert result["files_failed"] == 0
     assert len(result["output_keys"]) == 31
     assert len(fake_s3.writes) == 31
 
@@ -363,6 +390,83 @@ def test_generate_team_schedule_files_writes_all_30_outputs_and_upcoming_file():
     assert angels.team_abbreviation == "LAA"
     assert len(upcoming.games) == 1
     assert len(upcoming.dates) == 1
+
+
+def test_generate_team_schedule_files_logs_validation_failure_and_raises(caplog):
+    failing_key = CatchPaths.gold_team_key(147)
+    fake_s3 = _FakeS3Client(
+        {
+            CatchPaths.silver_master_schedule_key(2026): _json_bytes(
+                _master_schedule_payload([_silver_game()])
+            )
+        },
+        read_overrides={failing_key: b'{"team_id":"oops"}'},
+    )
+
+    with (
+        caplog.at_level("INFO"),
+        pytest.raises(
+            RuntimeError,
+            match="1 Gold files failed validation",
+        ),
+    ):
+        main.generate_team_schedule_files(
+            fake_s3,
+            "test-bucket",
+            2026,
+            execution_time=_FIXED_NOW,
+        )
+
+    assert len(fake_s3.writes) == 31
+    assert f"Gold output validation failed for {failing_key}" in caplog.text
+    assert "files_written=31 files_validated=30 files_failed=1" in caplog.text
+
+
+def test_generate_team_schedule_files_invalidates_cloudfront_when_configured(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    fake_s3 = _FakeS3Client(
+        {
+            CatchPaths.silver_master_schedule_key(2026): _json_bytes(
+                _master_schedule_payload([_silver_game()])
+            )
+        }
+    )
+    fake_cloudfront = _FakeCloudFrontClient()
+    monkeypatch.setenv(main._CLOUDFRONT_DISTRIBUTION_ID_ENV_VAR, "DIST123")
+    monkeypatch.setattr(main, "create_cloudfront_client", lambda: fake_cloudfront)
+
+    result = main.generate_team_schedule_files(
+        fake_s3,
+        "test-bucket",
+        2026,
+        execution_time=_FIXED_NOW,
+    )
+
+    assert result["cloudfront_invalidation_id"] == "INV123"
+    assert fake_cloudfront.invalidations == [
+        {
+            "DistributionId": "DIST123",
+            "InvalidationBatch": {
+                "CallerReference": "gold-2026-07-05T12:00:00+00:00-31",
+                "Paths": {
+                    "Quantity": 31,
+                    "Items": [f"/{key}" for key in result["output_keys"]],
+                },
+            },
+        }
+    ]
+
+
+def test_terraform_configures_silver_to_gold_trigger():
+    terraform = _INFRASTRUCTURE_MAIN_TF.read_text()
+
+    assert 'resource "aws_lambda_permission" "allow_data_bucket_invoke"' in terraform
+    assert (
+        'resource "aws_s3_bucket_notification" "bronze_schedule_to_silver"' in terraform
+    )
+    assert 'filter_prefix       = "silver/master_schedule_"' in terraform
+    assert terraform.count('events              = ["s3:ObjectCreated:*"]') >= 2
 
 
 def test_lambda_handler_reads_event_key_and_bucket(monkeypatch):

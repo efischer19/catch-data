@@ -23,12 +23,14 @@ from catch_models import (
     GoldUpcomingGames,
     SilverMasterSchedule,
 )
+from pydantic import ValidationError
 
 logger = logging.getLogger(__name__)
 
 _MASTER_SCHEDULE_KEY_RE = re.compile(
     r"(^|/)silver/master_schedule_(?P<year>\d{4})\.json$"
 )
+_CLOUDFRONT_DISTRIBUTION_ID_ENV_VAR = "CLOUDFRONT_DISTRIBUTION_ID"
 _UPCOMING_LOOKBACK_DAYS_ENV_VAR = "GOLD_UPCOMING_GAMES_LOOKBACK_DAYS"
 _UPCOMING_LOOKAHEAD_DAYS_ENV_VAR = "GOLD_UPCOMING_GAMES_LOOKAHEAD_DAYS"
 _DEFAULT_UPCOMING_LOOKBACK_DAYS = 1
@@ -83,6 +85,13 @@ def create_s3_client():
     import boto3
 
     return boto3.client("s3")
+
+
+def create_cloudfront_client():
+    """Create a CloudFront client lazily so tests do not require boto3 installed."""
+    import boto3
+
+    return boto3.client("cloudfront")
 
 
 def current_utc() -> datetime:
@@ -347,6 +356,25 @@ def build_upcoming_games(
     )
 
 
+def _write_json_object_to_s3(
+    s3_client: Any,
+    bucket: str,
+    key: str,
+    payload: GoldTeamSchedule | GoldUpcomingGames,
+) -> str:
+    body = json.dumps(
+        payload.model_dump(mode="json", exclude_none=True),
+        separators=(",", ":"),
+    ).encode("utf-8")
+    s3_client.put_object(
+        Bucket=bucket,
+        Key=key,
+        Body=body,
+        ContentType="application/json",
+    )
+    return key
+
+
 def write_team_schedules_to_s3(
     s3_client: Any,
     bucket: str,
@@ -357,17 +385,7 @@ def write_team_schedules_to_s3(
 
     for schedule in team_schedules:
         key = CatchPaths.gold_team_key(schedule.team_id)
-        body = json.dumps(
-            schedule.model_dump(mode="json", exclude_none=True),
-            separators=(",", ":"),
-        ).encode("utf-8")
-        s3_client.put_object(
-            Bucket=bucket,
-            Key=key,
-            Body=body,
-            ContentType="application/json",
-        )
-        output_keys.append(key)
+        output_keys.append(_write_json_object_to_s3(s3_client, bucket, key, schedule))
 
     return output_keys
 
@@ -379,17 +397,95 @@ def write_upcoming_games_to_s3(
 ) -> str:
     """Serialize validated Gold upcoming games and write them to S3."""
     key = CatchPaths.gold_upcoming_games_key()
-    body = json.dumps(
-        upcoming_games.model_dump(mode="json", exclude_none=True),
-        separators=(",", ":"),
-    ).encode("utf-8")
-    s3_client.put_object(
-        Bucket=bucket,
-        Key=key,
-        Body=body,
-        ContentType="application/json",
+    return _write_json_object_to_s3(s3_client, bucket, key, upcoming_games)
+
+
+def _validate_gold_object(
+    s3_client: Any,
+    bucket: str,
+    key: str,
+    model_type: type[GoldTeamSchedule] | type[GoldUpcomingGames],
+) -> bool:
+    try:
+        response = s3_client.get_object(Bucket=bucket, Key=key)
+        model_type.model_validate_json(response["Body"].read())
+    except ValidationError as error:
+        logger.error("Gold output validation failed for %s: %s", key, error)
+        return False
+    return True
+
+
+def validate_gold_outputs(
+    s3_client: Any,
+    bucket: str,
+    team_schedules: list[GoldTeamSchedule],
+    upcoming_games_key: str,
+) -> tuple[int, int]:
+    """Read back written Gold objects and validate they still round-trip."""
+    files_validated = 0
+    files_failed = 0
+
+    for schedule in team_schedules:
+        if _validate_gold_object(
+            s3_client,
+            bucket,
+            CatchPaths.gold_team_key(schedule.team_id),
+            GoldTeamSchedule,
+        ):
+            files_validated += 1
+        else:
+            files_failed += 1
+
+    if _validate_gold_object(
+        s3_client,
+        bucket,
+        upcoming_games_key,
+        GoldUpcomingGames,
+    ):
+        files_validated += 1
+    else:
+        files_failed += 1
+
+    return files_validated, files_failed
+
+
+def _cloudfront_distribution_id_from_env() -> str | None:
+    distribution_id = os.environ.get(_CLOUDFRONT_DISTRIBUTION_ID_ENV_VAR)
+    if distribution_id is None:
+        return None
+    if not distribution_id:
+        raise ValueError(
+            f"{_CLOUDFRONT_DISTRIBUTION_ID_ENV_VAR} must not be empty when configured"
+        )
+    return distribution_id
+
+
+def invalidate_cloudfront_gold_paths(
+    cloudfront_client: Any,
+    distribution_id: str,
+    output_keys: list[str],
+    execution_time: datetime,
+) -> str:
+    """Invalidate CloudFront paths for freshly written Gold objects."""
+    response = cloudfront_client.create_invalidation(
+        DistributionId=distribution_id,
+        InvalidationBatch={
+            "Paths": {
+                "Quantity": len(output_keys),
+                "Items": [f"/{key}" for key in output_keys],
+            },
+            "CallerReference": (
+                f"gold-{execution_time.astimezone(UTC).isoformat()}-{len(output_keys)}"
+            ),
+        },
     )
-    return key
+    invalidation_id = response["Invalidation"]["Id"]
+    logger.info(
+        "Requested CloudFront invalidation %s for %d Gold files",
+        invalidation_id,
+        len(output_keys),
+    )
+    return invalidation_id
 
 
 def generate_team_schedule_files(
@@ -404,15 +500,46 @@ def generate_team_schedule_files(
     team_schedules = build_all_team_schedules(master_schedule, timestamp)
     upcoming_games = build_upcoming_games(master_schedule, timestamp)
     output_keys = write_team_schedules_to_s3(s3_client, bucket, team_schedules)
-    output_keys.append(write_upcoming_games_to_s3(s3_client, bucket, upcoming_games))
+    upcoming_games_key = write_upcoming_games_to_s3(s3_client, bucket, upcoming_games)
+    output_keys.append(upcoming_games_key)
+    files_validated, files_failed = validate_gold_outputs(
+        s3_client,
+        bucket,
+        team_schedules,
+        upcoming_games_key,
+    )
+    logger.info(
+        "Gold output summary: files_written=%d files_validated=%d files_failed=%d",
+        len(output_keys),
+        files_validated,
+        files_failed,
+    )
+    if files_failed:
+        raise RuntimeError(f"{files_failed} Gold files failed validation")
 
-    return {
+    cloudfront_invalidation_id = None
+    distribution_id = _cloudfront_distribution_id_from_env()
+    if distribution_id is not None:
+        cloudfront_invalidation_id = invalidate_cloudfront_gold_paths(
+            create_cloudfront_client(),
+            distribution_id,
+            output_keys,
+            timestamp,
+        )
+
+    result = {
         "bucket": bucket,
+        "files_failed": files_failed,
+        "files_validated": files_validated,
+        "files_written": len(output_keys),
         "output_keys": output_keys,
         "team_schedule_count": len(team_schedules),
         "upcoming_games_count": len(upcoming_games.games),
         "year": master_schedule.year,
     }
+    if cloudfront_invalidation_id is not None:
+        result["cloudfront_invalidation_id"] = cloudfront_invalidation_id
+    return result
 
 
 def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
