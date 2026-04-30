@@ -8,6 +8,11 @@ locals {
     for prefix in var.write_prefixes :
     "${var.s3_bucket_arn}/${trim(prefix, "/")}/*"
   ]
+  # Combined list of prefixes for s3:ListBucket condition (deduplicated)
+  list_prefix_conditions = distinct([
+    for prefix in concat(var.read_prefixes, var.write_prefixes) :
+    "${trim(prefix, "/")}/*"
+  ])
 
   common_tags = {
     Project     = var.project_name
@@ -92,6 +97,18 @@ resource "aws_iam_role_policy" "s3_access" {
           "s3:PutObject"
         ]
         Resource = local.write_object_arns
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:ListBucket"
+        ]
+        Resource = var.s3_bucket_arn
+        Condition = {
+          StringLike = {
+            "s3:prefix" = local.list_prefix_conditions
+          }
+        }
       }
     ]
   })
