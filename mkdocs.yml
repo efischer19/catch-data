@@ -26,6 +26,7 @@ nav:
       - Feature Request Automation: FEATURE_REQUEST_AUTOMATION.md
   - Guides:
       - Medallion Architecture: MEDALLION_ARCHITECTURE.md
+      - Pipeline Runbook: PIPELINE_RUNBOOK.md
       - Documentation Guide: DOCUMENTATION_README.md
       - Shared Library Versioning: SHARED_LIBRARY_VERSIONING.md
 

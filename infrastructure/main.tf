@@ -841,6 +841,151 @@ resource "aws_iam_role_policy" "github_actions_infrastructure" {
         ]
         Resource = "arn:aws:logs:*:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${var.project_name}-*"
       },
+      {
+        Sid    = "SNSManage"
+        Effect = "Allow"
+        Action = [
+          "sns:CreateTopic",
+          "sns:DeleteTopic",
+          "sns:GetSubscriptionAttributes",
+          "sns:GetTopicAttributes",
+          "sns:ListSubscriptionsByTopic",
+          "sns:ListTagsForResource",
+          "sns:ListTopics",
+          "sns:SetTopicAttributes",
+          "sns:Subscribe",
+          "sns:TagResource",
+          "sns:Unsubscribe",
+          "sns:UntagResource",
+        ]
+        Resource = "arn:aws:sns:*:${data.aws_caller_identity.current.account_id}:${var.project_name}-*"
+      },
+      {
+        Sid    = "CloudWatchAlarmsManage"
+        Effect = "Allow"
+        Action = [
+          "cloudwatch:DeleteAlarms",
+          "cloudwatch:DescribeAlarms",
+          "cloudwatch:DisableAlarmActions",
+          "cloudwatch:EnableAlarmActions",
+          "cloudwatch:ListTagsForResource",
+          "cloudwatch:PutMetricAlarm",
+          "cloudwatch:TagResource",
+          "cloudwatch:UntagResource",
+        ]
+        Resource = "arn:aws:cloudwatch:*:${data.aws_caller_identity.current.account_id}:alarm:${var.project_name}-*"
+      },
     ]
   })
+}
+
+# -----------------------------------------------------------------------------
+# Monitoring & Alerting — SNS topic, Lambda error alarms, stale data alarm
+# -----------------------------------------------------------------------------
+# See ADR-015 (AWS), ADR-016 (Terraform), ADR-008 (JSON logging).
+#
+# Two CloudWatch Alarms fire on any Lambda error in a 24-hour window (one per
+# pipeline stage). A third alarm detects Gold layer staleness by checking that
+# catch-analytics has been invoked at least once across any 36-hour window.
+#
+# All alarms publish to a shared SNS topic; an email subscriber is optional and
+# controlled by the alert_email variable.
+# -----------------------------------------------------------------------------
+
+resource "aws_sns_topic" "pipeline_alerts" {
+  name = "${var.project_name}-pipeline-alerts-${var.environment}"
+
+  tags = {
+    Project     = var.project_name
+    Environment = var.environment
+    ManagedBy   = "terraform"
+  }
+}
+
+resource "aws_sns_topic_subscription" "pipeline_alerts_email" {
+  count     = var.alert_email != "" ? 1 : 0
+  topic_arn = aws_sns_topic.pipeline_alerts.arn
+  protocol  = "email"
+  endpoint  = var.alert_email
+}
+
+resource "aws_cloudwatch_metric_alarm" "catch_processing_errors" {
+  alarm_name          = "${var.project_name}-catch-processing-errors-${var.environment}"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "Errors"
+  namespace           = "AWS/Lambda"
+  period              = 86400 # 24 hours
+  statistic           = "Sum"
+  threshold           = 0
+  treat_missing_data  = "notBreaching"
+  alarm_description   = "Silver Lambda (catch-processing) reported at least one error in the last 24 hours."
+
+  dimensions = {
+    FunctionName = module.catch_processing.lambda_function_name
+  }
+
+  alarm_actions = [aws_sns_topic.pipeline_alerts.arn]
+  ok_actions    = [aws_sns_topic.pipeline_alerts.arn]
+
+  tags = {
+    Project     = var.project_name
+    Environment = var.environment
+    ManagedBy   = "terraform"
+  }
+}
+
+resource "aws_cloudwatch_metric_alarm" "catch_analytics_errors" {
+  alarm_name          = "${var.project_name}-catch-analytics-errors-${var.environment}"
+  comparison_operator = "GreaterThanThreshold"
+  evaluation_periods  = 1
+  metric_name         = "Errors"
+  namespace           = "AWS/Lambda"
+  period              = 86400 # 24 hours
+  statistic           = "Sum"
+  threshold           = 0
+  treat_missing_data  = "notBreaching"
+  alarm_description   = "Gold Lambda (catch-analytics) reported at least one error in the last 24 hours."
+
+  dimensions = {
+    FunctionName = module.catch_analytics.lambda_function_name
+  }
+
+  alarm_actions = [aws_sns_topic.pipeline_alerts.arn]
+  ok_actions    = [aws_sns_topic.pipeline_alerts.arn]
+
+  tags = {
+    Project     = var.project_name
+    Environment = var.environment
+    ManagedBy   = "terraform"
+  }
+}
+
+# Stale data alarm: fire if catch-analytics has not been invoked across three
+# consecutive 12-hour evaluation windows (= 36 hours). Missing data is treated
+# as a breach so a completely cold Lambda still triggers the alarm.
+resource "aws_cloudwatch_metric_alarm" "gold_data_stale" {
+  alarm_name          = "${var.project_name}-gold-data-stale-${var.environment}"
+  comparison_operator = "LessThanOrEqualToThreshold"
+  evaluation_periods  = 3
+  metric_name         = "Invocations"
+  namespace           = "AWS/Lambda"
+  period              = 43200 # 12 hours — 3 periods = 36 hours
+  statistic           = "Sum"
+  threshold           = 0
+  treat_missing_data  = "breaching"
+  alarm_description   = "Gold layer data is stale — catch-analytics has not run in the last 36 hours. Check ingestion logs and pipeline health."
+
+  dimensions = {
+    FunctionName = module.catch_analytics.lambda_function_name
+  }
+
+  alarm_actions = [aws_sns_topic.pipeline_alerts.arn]
+  ok_actions    = [aws_sns_topic.pipeline_alerts.arn]
+
+  tags = {
+    Project     = var.project_name
+    Environment = var.environment
+    ManagedBy   = "terraform"
+  }
 }

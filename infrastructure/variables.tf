@@ -83,3 +83,9 @@ variable "github_repo" {
   type        = string
   default     = "catch-data"
 }
+
+variable "alert_email" {
+  description = "Email address to receive pipeline failure alerts via SNS. Leave empty to skip email subscription."
+  type        = string
+  default     = ""
+}

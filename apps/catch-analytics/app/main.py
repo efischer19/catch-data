@@ -498,8 +498,9 @@ def generate_team_schedule_files(
     execution_time: datetime | None = None,
 ) -> dict[str, Any]:
     """Build and write the Gold team schedules and upcoming-games view."""
+    start_time = execution_time or current_utc()
     master_schedule = read_master_schedule_from_s3(s3_client, bucket, year)
-    timestamp = execution_time or current_utc()
+    timestamp = start_time
     team_schedules = build_all_team_schedules(master_schedule, timestamp)
     upcoming_games = build_upcoming_games(master_schedule, timestamp)
     output_keys = write_team_schedules_to_s3(s3_client, bucket, team_schedules)
@@ -511,11 +512,18 @@ def generate_team_schedule_files(
         team_schedules,
         upcoming_games_key,
     )
+    duration_ms = int((current_utc() - start_time).total_seconds() * 1000)
     logger.info(
-        "Gold output summary: files_written=%d files_validated=%d files_failed=%d",
-        len(output_keys),
-        files_validated,
-        files_failed,
+        "Gold output summary",
+        extra={
+            "pipeline_stage": "gold",
+            "execution_date": str(year),
+            "games_processed": len(master_schedule.games),
+            "games_failed": files_failed,
+            "duration_ms": duration_ms,
+            "files_written": len(output_keys),
+            "files_validated": files_validated,
+        },
     )
     if files_failed:
         raise RuntimeError(f"{files_failed} Gold files failed validation")

@@ -651,13 +651,26 @@ def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
     """Handle S3 notifications by rebuilding the Silver master schedule."""
     del context
 
+    start_time = current_utc()
     try:
         year = extract_year_from_s3_event(event)
         bucket = os.environ.get("S3_BUCKET_NAME") or _bucket_name_from_event(event)
         s3_client = create_s3_client()
 
-        master_schedule = build_master_schedule(s3_client, bucket, year, current_utc())
+        master_schedule = build_master_schedule(s3_client, bucket, year, start_time)
         output_key = write_master_schedule_to_s3(s3_client, bucket, master_schedule)
+
+        duration_ms = int((current_utc() - start_time).total_seconds() * 1000)
+        _log_structured(
+            logging.INFO,
+            "lambda_execution_summary",
+            pipeline_stage="silver",
+            execution_date=str(year),
+            games_processed=len(master_schedule.games)
+            + master_schedule.processing_errors.count,
+            games_failed=master_schedule.processing_errors.count,
+            duration_ms=duration_ms,
+        )
 
         return {
             "bucket": bucket,

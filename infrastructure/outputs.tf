@@ -70,3 +70,8 @@ output "ingestion_user_name" {
   description = "Name of the IAM user for the Mac Mini ingestion script (Bronze writes only)"
   value       = aws_iam_user.ingestion.name
 }
+
+output "sns_pipeline_alerts_topic_arn" {
+  description = "ARN of the SNS topic that receives pipeline failure alerts"
+  value       = aws_sns_topic.pipeline_alerts.arn
+}
