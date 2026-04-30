@@ -114,6 +114,13 @@ resource "aws_iam_role_policy" "s3_access" {
   })
 }
 
+resource "aws_cloudwatch_log_group" "this" {
+  name              = "/aws/lambda/${local.name_with_environment}"
+  retention_in_days = 14
+
+  tags = local.common_tags
+}
+
 resource "aws_lambda_function" "this" {
   function_name = local.name_with_environment
   role          = aws_iam_role.this.arn
@@ -132,6 +139,8 @@ resource "aws_lambda_function" "this" {
       }
     )
   }
+
+  depends_on = [aws_cloudwatch_log_group.this]
 
   tags = local.common_tags
 }

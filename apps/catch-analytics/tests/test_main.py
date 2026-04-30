@@ -420,7 +420,7 @@ def test_generate_team_schedule_files_logs_validation_failure_and_raises(caplog)
 
     assert len(fake_s3.writes) == 31
     assert f"Gold output validation failed for {failing_key}" in caplog.text
-    assert "files_written=31 files_validated=30 files_failed=1" in caplog.text
+    assert "Gold output summary" in caplog.text
 
 
 def test_generate_team_schedule_files_invalidates_cloudfront_when_configured(

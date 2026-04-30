@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import os
-from datetime import date, timedelta
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -50,7 +50,12 @@ def create_log_formatter(log_format: str) -> logging.Formatter:
 
 
 def configure_logging() -> None:
-    """Configure application logging for local or JSON structured output."""
+    """Configure application logging for local or JSON structured output.
+
+    When ``LOG_FILE`` is set, structured JSON entries are also written to that
+    path so Mac Mini cron runs produce a persistent audit trail without
+    capturing stdout/stderr.
+    """
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.INFO)
     log_format = os.getenv("LOG_FORMAT", "text").lower()
@@ -60,12 +65,26 @@ def configure_logging() -> None:
         handler = logging.StreamHandler()
         handler.setFormatter(formatter)
         root_logger.addHandler(handler)
-        return
+    else:
+        force_json_formatter = log_format == "json"
+        for handler in root_logger.handlers:
+            if handler.formatter is not None or force_json_formatter:
+                handler.setFormatter(formatter)
 
-    force_json_formatter = log_format == "json"
-    for handler in root_logger.handlers:
-        if handler.formatter is not None or force_json_formatter:
-            handler.setFormatter(formatter)
+    log_file = os.getenv("LOG_FILE")
+    if log_file:
+        file_handler = logging.FileHandler(log_file, encoding="utf-8")
+        file_handler.setFormatter(
+            JsonFormatter(
+                "%(asctime)s %(levelname)s %(name)s %(message)s",
+                rename_fields={
+                    "asctime": "timestamp",
+                    "levelname": "level",
+                    "name": "logger",
+                },
+            )
+        )
+        root_logger.addHandler(file_handler)
 
 
 def current_year() -> int:
@@ -437,6 +456,8 @@ def ingest_completed_games(
             "games_succeeded": games_succeeded,
             "games_total": len(game_pks),
             "target_date": target_date.isoformat(),
+            "pipeline_stage": "bronze",
+            "execution_date": target_date.isoformat(),
         },
     )
 
@@ -521,6 +542,10 @@ def ingest_games(
     target_date = parse_target_date(target_date_value)
     correlation_id = target_date.isoformat()
     mlb_client = create_mlb_client()
+    start_time = datetime.now(UTC)
+
+    def _elapsed_ms() -> int:
+        return int((datetime.now(UTC) - start_time).total_seconds() * 1000)
 
     try:
         summary = ingest_completed_games(
@@ -557,10 +582,16 @@ def ingest_games(
             "boxscores_uploaded": 0,
             "contents_uploaded": 0,
             "schedule_key": CatchPaths.bronze_schedule_key(target_date.year),
+            "pipeline_stage": "bronze",
+            "execution_date": target_date.isoformat(),
+            "duration_ms": _elapsed_ms(),
         }
         click.echo(json.dumps(summary))
         raise click.exceptions.Exit(2) from error
 
+    summary["pipeline_stage"] = "bronze"
+    summary["execution_date"] = target_date.isoformat()
+    summary["duration_ms"] = _elapsed_ms()
     click.echo(json.dumps(summary))
     raise click.exceptions.Exit(determine_exit_code(summary))
 

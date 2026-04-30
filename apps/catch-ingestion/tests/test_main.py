@@ -435,6 +435,9 @@ def test_cli_ingest_games_uploads_missing_objects_and_skips_existing(
         "boxscores_uploaded": 1,
         "contents_uploaded": 1,
         "schedule_key": CatchPaths.bronze_schedule_key(2025),
+        "pipeline_stage": "bronze",
+        "execution_date": "2025-06-15",
+        "duration_ms": summary["duration_ms"],  # non-deterministic; assert key exists
     }
     assert json.loads(Path("failed_games.json").read_text(encoding="utf-8")) == []
     assert any(
