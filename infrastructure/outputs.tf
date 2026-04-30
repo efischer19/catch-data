@@ -60,3 +60,13 @@ output "cloudfront_distribution_id" {
   description = "ID of the CloudFront distribution serving the Gold layer (used for cache invalidation)"
   value       = aws_cloudfront_distribution.gold.id
 }
+
+output "github_actions_role_arn" {
+  description = "ARN of the GitHub Actions OIDC IAM role used by CI/CD workflows"
+  value       = aws_iam_role.github_actions.arn
+}
+
+output "ingestion_user_name" {
+  description = "Name of the IAM user for the Mac Mini ingestion script (Bronze writes only)"
+  value       = aws_iam_user.ingestion.name
+}

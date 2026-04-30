@@ -71,3 +71,15 @@ variable "acm_certificate_arn" {
   type        = string
   default     = ""
 }
+
+variable "github_owner" {
+  description = "GitHub repository owner (organization or user) used in the OIDC trust-policy subject claim."
+  type        = string
+  default     = "efischer19"
+}
+
+variable "github_repo" {
+  description = "GitHub repository name used in the OIDC trust-policy subject claim."
+  type        = string
+  default     = "catch-data"
+}
