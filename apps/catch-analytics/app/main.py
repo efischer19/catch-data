@@ -239,7 +239,7 @@ def _window_days_from_env(env_var: str, default: int) -> int:
     if raw_value is None:
         return default
     if raw_value == "":
-        raise ValueError(f"{env_var} must not be empty when configured")
+        raise ValueError(f"{env_var} cannot be an empty string")
     try:
         parsed_value = int(raw_value)
     except ValueError as error:

@@ -260,9 +260,8 @@ def _group_games_by_date(games: list[GoldGameSummary]) -> list[GoldGameDateGroup
                 )
             current_date = game_date
             current_games = [game]
-            continue
-
-        current_games.append(game)
+        else:
+            current_games.append(game)
 
     if current_date is not None:
         grouped_games.append(GoldGameDateGroup(date=current_date, games=current_games))
