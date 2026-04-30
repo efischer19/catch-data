@@ -661,13 +661,15 @@ def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
         output_key = write_master_schedule_to_s3(s3_client, bucket, master_schedule)
 
         duration_ms = int((current_utc() - start_time).total_seconds() * 1000)
+        games_total = (
+            len(master_schedule.games) + master_schedule.processing_errors.count
+        )
         _log_structured(
             logging.INFO,
             "lambda_execution_summary",
             pipeline_stage="silver",
             execution_date=str(year),
-            games_processed=len(master_schedule.games)
-            + master_schedule.processing_errors.count,
+            games_processed=games_total,
             games_failed=master_schedule.processing_errors.count,
             duration_ms=duration_ms,
         )

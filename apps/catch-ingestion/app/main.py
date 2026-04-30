@@ -544,6 +544,9 @@ def ingest_games(
     mlb_client = create_mlb_client()
     start_time = datetime.now(UTC)
 
+    def _elapsed_ms() -> int:
+        return int((datetime.now(UTC) - start_time).total_seconds() * 1000)
+
     try:
         summary = ingest_completed_games(
             create_s3_client(),
@@ -563,7 +566,6 @@ def ingest_games(
             },
             exc_info=error,
         )
-        duration_ms = int((datetime.now(UTC) - start_time).total_seconds() * 1000)
         summary = {
             "bucket": bucket,
             "correlation_id": correlation_id,
@@ -582,15 +584,14 @@ def ingest_games(
             "schedule_key": CatchPaths.bronze_schedule_key(target_date.year),
             "pipeline_stage": "bronze",
             "execution_date": target_date.isoformat(),
-            "duration_ms": duration_ms,
+            "duration_ms": _elapsed_ms(),
         }
         click.echo(json.dumps(summary))
         raise click.exceptions.Exit(2) from error
 
-    duration_ms = int((datetime.now(UTC) - start_time).total_seconds() * 1000)
     summary["pipeline_stage"] = "bronze"
     summary["execution_date"] = target_date.isoformat()
-    summary["duration_ms"] = duration_ms
+    summary["duration_ms"] = _elapsed_ms()
     click.echo(json.dumps(summary))
     raise click.exceptions.Exit(determine_exit_code(summary))
 
