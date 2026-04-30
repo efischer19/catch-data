@@ -24,7 +24,8 @@ locals {
   silver_processing_dlq_retention_seconds = (
     local.silver_processing_dlq_retention_days * local.seconds_per_day
   )
-  gold_ttl_seconds = 3600 # 1 hour — balance between freshness and CDN efficiency
+  gold_ttl_seconds       = 3600 # 1 hour — balance between freshness and CDN efficiency
+  use_custom_certificate = var.acm_certificate_arn != ""
 }
 
 resource "aws_s3_bucket" "data" {
@@ -315,10 +316,10 @@ resource "aws_cloudfront_distribution" "gold" {
   }
 
   viewer_certificate {
-    cloudfront_default_certificate = var.acm_certificate_arn == "" ? true : false
-    acm_certificate_arn            = var.acm_certificate_arn != "" ? var.acm_certificate_arn : null
-    ssl_support_method             = var.acm_certificate_arn != "" ? "sni-only" : null
-    minimum_protocol_version       = var.acm_certificate_arn != "" ? "TLSv1.2_2021" : null
+    cloudfront_default_certificate = !local.use_custom_certificate
+    acm_certificate_arn            = local.use_custom_certificate ? var.acm_certificate_arn : null
+    ssl_support_method             = local.use_custom_certificate ? "sni-only" : null
+    minimum_protocol_version       = local.use_custom_certificate ? "TLSv1.2_2021" : null
   }
 
   tags = {
