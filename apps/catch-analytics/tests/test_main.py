@@ -459,21 +459,46 @@ def test_generate_team_schedule_files_invalidates_cloudfront_when_configured(
     ]
 
 
-def test_terraform_configures_silver_to_gold_trigger():
+def test_terraform_configures_split_pipeline_lambdas():
     """Keep trigger verification in the app test suite until infra gets native tests."""
     terraform = _INFRASTRUCTURE_MAIN_TF.read_text()
+    module_dir = _INFRASTRUCTURE_MAIN_TF.parent / "modules" / "lambda-pipeline-stage"
+    module_main = (module_dir / "main.tf").read_text()
 
-    assert 'resource "aws_lambda_permission" "allow_data_bucket_invoke"' in terraform
+    assert 'module "catch_processing"' in terraform
+    assert 'module "catch_analytics"' in terraform
+    assert (
+        'resource "aws_lambda_permission" "allow_data_bucket_invoke_catch_processing"'
+        in terraform
+    )
+    assert (
+        'resource "aws_lambda_permission" "allow_data_bucket_invoke_catch_analytics"'
+        in terraform
+    )
     assert re.search(
-        r'resource\s+"aws_s3_bucket_notification"\s+"bronze_schedule_to_silver"',
+        r'resource\s+"aws_s3_bucket_notification"\s+"pipeline_triggers"',
         terraform,
     )
     assert re.search(
-        r'lambda_function\s*\{[^}]*events\s*=\s*\["s3:ObjectCreated:\*"\][^}]*'
-        r'filter_prefix\s*=\s*"silver/master_schedule_"',
+        r"lambda_function\s*\{[^}]*lambda_function_arn\s*=\s*module\.catch_analytics"
+        r'\.lambda_function_arn[^}]*filter_prefix\s*=\s*"silver/master_schedule_"',
         terraform,
         re.DOTALL,
     )
+    assert re.search(r"memory_size\s*=\s*512", terraform)
+    assert re.search(r"timeout\s*=\s*300", terraform)
+    assert re.search(r"memory_size\s*=\s*256", terraform)
+    assert re.search(r"timeout\s*=\s*120", terraform)
+    assert re.search(r'package_type\s*=\s*"Image"', module_main)
+    assert (
+        re.search(
+            r'image_uri\s*=\s*"\$\{aws_ecr_repository\.this\.repository_url\}:\$\{var\.image_tag\}"',
+            module_main,
+        )
+        is not None
+    )
+    assert re.search(r'LOG_FORMAT\s*=\s*"json"', module_main)
+    assert 'description  = "Keep only the last 10 untagged images"' in module_main
 
 
 def test_lambda_handler_reads_event_key_and_bucket(monkeypatch):

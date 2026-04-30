@@ -37,3 +37,25 @@ variable "cors_allowed_origins" {
     error_message = "CORS origins must be explicit http(s) URLs and may not use '*'."
   }
 }
+
+variable "catch_processing_image_tag" {
+  description = "Pinned ECR image tag for the catch-processing Lambda container"
+  type        = string
+  default     = "bootstrap"
+
+  validation {
+    condition     = trimspace(var.catch_processing_image_tag) != "" && var.catch_processing_image_tag != "latest"
+    error_message = "catch_processing_image_tag must be a non-empty pinned tag and may not be 'latest'."
+  }
+}
+
+variable "catch_analytics_image_tag" {
+  description = "Pinned ECR image tag for the catch-analytics Lambda container"
+  type        = string
+  default     = "bootstrap"
+
+  validation {
+    condition     = trimspace(var.catch_analytics_image_tag) != "" && var.catch_analytics_image_tag != "latest"
+    error_message = "catch_analytics_image_tag must be a non-empty pinned tag and may not be 'latest'."
+  }
+}
