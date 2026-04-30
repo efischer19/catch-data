@@ -49,7 +49,7 @@ See `meta/adr/` for the full list of Architecture Decision Records.
 
 ### Key Files
 
-* **`LICENSE.md`** — MIT License
+* **`LICENSE.md`** — GPL License
 * **`CODE_OF_CONDUCT.md`** — Contributor Covenant Code of Conduct
 * **`SECURITY.md`** — Security policy and vulnerability reporting
 * **`CONTRIBUTING.md`** — Guidelines for contributing to the project
