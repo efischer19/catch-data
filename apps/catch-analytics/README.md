@@ -1,15 +1,17 @@
 # catch-analytics
 
-> Gold layer — transform the Silver master schedule into frontend-ready team JSON.
+> Gold layer — transform the Silver master schedule into frontend-ready JSON.
 
 ## Purpose
 
 This application implements the **Gold** (analytics) stage of the
 [medallion architecture](../../meta/adr/ADR-018-medallion_architecture.md).
 It reads the validated Silver master schedule from S3 and writes one
-frontend-ready Gold schedule JSON file per MLB team.
+frontend-ready Gold schedule JSON file per MLB team plus a rolling-window
+`gold/upcoming_games.json` view for the frontend "Today's Slate".
 
-**Data flow:** S3 `silver/master_schedule_{year}.json` → Transform → `gold/team_{team_id}.json`
+**Data flow:** S3 `silver/master_schedule_{year}.json` → Transform →
+`gold/team_{team_id}.json` and `gold/upcoming_games.json`
 
 ## Installation
 
@@ -21,7 +23,7 @@ poetry install
 ## Usage
 
 ```bash
-# Build all 30 team schedule files for a season
+# Build all 30 team schedule files and the upcoming-games view for a season
 poetry run catch-analytics aggregate \
     --year 2026 \
     --bucket catch-data-data-dev

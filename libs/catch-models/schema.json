@@ -85,6 +85,31 @@
       "title": "GoldBoxscoreSummary",
       "type": "object"
     },
+    "GoldGameDateGroup": {
+      "additionalProperties": false,
+      "description": "Upcoming-games helper model for frontend-friendly date sections.",
+      "properties": {
+        "date": {
+          "description": "UTC calendar date for the grouped games",
+          "format": "date",
+          "title": "Date",
+          "type": "string"
+        },
+        "games": {
+          "description": "Games on this UTC calendar date, ordered by first pitch ascending",
+          "items": {
+            "$ref": "#/$defs/GoldGameSummary"
+          },
+          "title": "Games",
+          "type": "array"
+        }
+      },
+      "required": [
+        "date"
+      ],
+      "title": "GoldGameDateGroup",
+      "type": "object"
+    },
     "GoldGameSummary": {
       "additionalProperties": false,
       "description": "Single-game view model consumed by the catch-app frontend.\n\nThis is the atomic unit of both :class:`GoldTeamSchedule` and\n:class:`GoldUpcomingGames`.  Fields are ordered from most- to\nleast-frequently accessed to aid human readability of the raw JSON.\n\nNullable fields\n---------------\n* ``score`` / ``score_display`` \u2014 absent for pre-game or postponed\n* ``condensed_game_url`` \u2014 absent when MLB has not published a clip\n* ``boxscore_summary`` \u2014 absent for incomplete or postponed games\n\nDoubleheader handling\n---------------------\nBoth games share the same calendar date but have distinct\n``game_pk`` values and a ``game_number`` of 1 or 2.  The frontend\nuses ``game_number`` to render \"Game 1\" / \"Game 2\" labels.\n\nStatus values\n-------------\nThe frontend must handle at least: ``Final``, ``Postponed``,\n``Scheduled``, ``In Progress``.  The raw ``status_detail`` string\nfrom the Silver layer is surfaced here unchanged.",
@@ -298,8 +323,16 @@
     },
     "GoldUpcomingGames": {
       "additionalProperties": false,
-      "description": "Consolidated upcoming and recently completed games across all teams.\n\nSerialised to ``gold/upcoming_games.json`` and served via CloudFront.\nContains games in a rolling window (yesterday through 7 days out) to\nkeep the file size small and data transfer costs low.\n\nThe window bounds are determined by the analytics Lambda at generation\ntime; this model does not enforce them so tests remain deterministic.",
+      "description": "Consolidated upcoming and recently completed games across all teams.\n\nSerialised to ``gold/upcoming_games.json`` and served via CloudFront.\nContains games in a rolling window (yesterday through 7 days out) to\nkeep the file size small and data transfer costs low.\n\nThe analytics Lambda determines the rolling window and ordering.  This\nmodel exposes both the flat ordered game list and a date-grouped view\nso the frontend can render day sections without additional client-side\nreshaping.",
       "properties": {
+        "dates": {
+          "description": "The same games grouped by UTC calendar date for easy rendering",
+          "items": {
+            "$ref": "#/$defs/GoldGameDateGroup"
+          },
+          "title": "Dates",
+          "type": "array"
+        },
         "games": {
           "description": "Games in the rolling window (yesterday \u2026 +7 days), ordered by date",
           "items": {

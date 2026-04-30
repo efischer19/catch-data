@@ -18,6 +18,7 @@ import pytest
 from catch_models import (
     DataCompleteness,
     GoldBoxscoreSummary,
+    GoldGameDateGroup,
     GoldGameSummary,
     GoldScore,
     GoldTeamInfo,
@@ -429,6 +430,39 @@ class TestGoldUpcomingGames:
         assert dumped["last_updated"] == "2026-07-05T12:00:00Z"
         assert len(dumped["games"]) == 1
         assert dumped["games"][0]["status"] == "Final"
+        assert dumped["dates"] == [
+            {
+                "date": "2026-07-04",
+                "games": [dumped["games"][0]],
+            }
+        ]
+
+    def test_explicit_date_groups_are_preserved(self):
+        game = GoldGameSummary(
+            game_pk=745678,
+            date=datetime(2026, 7, 4, 17, 5, tzinfo=UTC),
+            status="Final",
+            game_number=1,
+            venue_name="Yankee Stadium",
+            home_team=_HOME_TEAM,
+            away_team=_AWAY_TEAM,
+            score=GoldScore(away=3, home=5),
+            score_display="3-5",
+        )
+        upcoming = GoldUpcomingGames(
+            last_updated=datetime(2026, 7, 5, 12, 0, tzinfo=UTC),
+            games=[game],
+            dates=[
+                GoldGameDateGroup(
+                    date=datetime(2026, 7, 4, tzinfo=UTC).date(),
+                    games=[game],
+                )
+            ],
+        )
+
+        dumped = upcoming.model_dump(mode="json")
+        assert dumped["dates"][0]["date"] == "2026-07-04"
+        assert dumped["dates"][0]["games"][0]["game_pk"] == 745678
 
     def test_json_schema_is_serialisable(self):
         schema = GoldUpcomingGames.model_json_schema()
@@ -560,6 +594,10 @@ class TestSilverToGoldTransformation:
         )
         dumped = upcoming.model_dump(mode="json")
         assert len(dumped["games"]) == 2
+        assert [group["date"] for group in dumped["dates"]] == [
+            "2026-07-04",
+            "2026-08-12",
+        ]
         statuses = {g["status"] for g in dumped["games"]}
         assert "Final" in statuses
         assert "Postponed" in statuses
