@@ -53,7 +53,7 @@ _MLB_TEAM_CONTEXT: dict[int, TeamContext] = {
     119: TeamContext("Los Angeles Dodgers", "LAD", "National League", "NL West"),
     120: TeamContext("Washington Nationals", "WSH", "National League", "NL East"),
     121: TeamContext("New York Mets", "NYM", "National League", "NL East"),
-    133: TeamContext("Athletics", "ATH", "American League", "AL West"),
+    133: TeamContext("Athletics", "OAK", "American League", "AL West"),
     134: TeamContext("Pittsburgh Pirates", "PIT", "National League", "NL Central"),
     135: TeamContext("San Diego Padres", "SD", "National League", "NL West"),
     136: TeamContext("Seattle Mariners", "SEA", "American League", "AL West"),
@@ -94,6 +94,15 @@ def _first_s3_record(event: dict[str, Any]) -> dict[str, Any]:
 
 def _bucket_name_from_event(event: dict[str, Any]) -> str:
     return _first_s3_record(event)["s3"]["bucket"]["name"]
+
+
+def _bucket_from_env_or_event(event: dict[str, Any]) -> str:
+    bucket = os.environ.get("S3_BUCKET_NAME")
+    if bucket is None:
+        return _bucket_name_from_event(event)
+    if not bucket:
+        raise ValueError("S3_BUCKET_NAME must not be empty when configured")
+    return bucket
 
 
 def extract_year_from_s3_event(event: dict[str, Any]) -> int:
@@ -301,7 +310,7 @@ def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
     del context
 
     year = extract_year_from_s3_event(event)
-    bucket = os.environ.get("S3_BUCKET_NAME") or _bucket_name_from_event(event)
+    bucket = _bucket_from_env_or_event(event)
     return generate_team_schedule_files(create_s3_client(), bucket, year, current_utc())
 
 
