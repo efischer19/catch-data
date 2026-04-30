@@ -456,7 +456,7 @@ def _cloudfront_distribution_id_from_env() -> str | None:
     distribution_id = os.environ.get(_CLOUDFRONT_DISTRIBUTION_ID_ENV_VAR)
     if distribution_id is None:
         return None
-    if not distribution_id:
+    if distribution_id == "":
         raise ValueError(
             f"{_CLOUDFRONT_DISTRIBUTION_ID_ENV_VAR} must be a non-empty string when set"
         )
