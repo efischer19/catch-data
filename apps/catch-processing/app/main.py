@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import re
+from collections import Counter
 from datetime import UTC, datetime
 from typing import Any
 from urllib.parse import unquote_plus
@@ -20,6 +21,7 @@ from catch_models import (
     ScheduleResponse,
     SilverGame,
     SilverMasterSchedule,
+    SilverProcessingErrors,
 )
 from pydantic import ValidationError
 
@@ -27,6 +29,16 @@ logger = logging.getLogger(__name__)
 
 _SCHEDULE_KEY_RE = re.compile(r"(^|/)bronze/schedule_(?P<year>\d{4})\.json$")
 _MISSING_OBJECT_ERROR_CODES = {"404", "NoSuchKey", "NotFound"}
+_DLQ_URL_ENV_VAR = "SILVER_DLQ_URL"
+# Reject Silver outputs once failures reach 20% because the issue's safety-valve
+# requirement treats that as a likely upstream schema change instead of a few
+# isolated bad games.
+_PROCESSING_FAILURE_THRESHOLD_PERCENT = 20
+# Allow a 5% accounting gap between Bronze schedule records and the sum of
+# successful Silver rows plus excluded failures to tolerate small expected
+# differences without hiding a larger data-loss problem.
+_QUALITY_TOLERANCE_PERCENT = 5
+_LOG_SAMPLE_LIMIT = 500
 _TEAM_ABBREVIATIONS_BY_ID = {
     108: "LAA",
     109: "ARI",
@@ -106,6 +118,13 @@ def create_s3_client():
     return boto3.client("s3")
 
 
+def create_sqs_client():
+    """Create an SQS client lazily so tests do not require boto3 installed."""
+    import boto3
+
+    return boto3.client("sqs")
+
+
 def write_to_s3(records: list[dict], s3_key_prefix: str) -> int:
     """Retain the template-style S3 writer used by the legacy placeholder test."""
     logger.info(
@@ -143,6 +162,36 @@ def _bucket_name_from_event(event: dict[str, Any]) -> str:
 
 def _parse_timestamp(value: str) -> datetime:
     return datetime.fromisoformat(value.replace("Z", "+00:00")).astimezone(UTC)
+
+
+def _truncate_for_log(value: Any, limit: int = _LOG_SAMPLE_LIMIT) -> str:
+    serialized = json.dumps(value, default=str, sort_keys=True)
+    if len(serialized) <= limit:
+        return serialized
+    return f"{serialized[: limit - 3]}..."
+
+
+def _log_structured(level: int, event: str, **fields: Any) -> None:
+    logger.log(
+        level,
+        json.dumps({"event": event, **fields}, default=str, sort_keys=True),
+    )
+
+
+def _log_game_processing_failure(
+    schedule_game: ScheduleGame,
+    error: Exception,
+    sample: Any,
+) -> None:
+    _log_structured(
+        logging.WARNING,
+        "silver_game_excluded",
+        error_message=str(error),
+        error_type=type(error).__name__,
+        gamePk=schedule_game.gamePk,
+        processing_errors_metric=1,
+        sample=_truncate_for_log(sample),
+    )
 
 
 def _parse_source_updated_at(
@@ -322,6 +371,7 @@ def build_silver_game(
     content: ContentResponse | None,
 ) -> SilverGame | None:
     """Join Bronze schedule, boxscore, and content data into one Silver game."""
+    sample: Any = schedule_game.model_dump(mode="json", by_alias=True)
     try:
         linescore = (
             boxscore.liveData.linescore
@@ -402,19 +452,106 @@ def build_silver_game(
             "source_updated_at": _parse_source_updated_at(schedule_game, boxscore),
             "data_completeness": _boxscore_completeness(boxscore),
         }
+        sample = payload
         return SilverGame.model_validate(payload)
-    except (ValidationError, ValueError):
-        logger.exception(
-            "Skipping invalid Silver game payload for gamePk=%s",
-            schedule_game.gamePk,
-        )
+    except (ValidationError, ValueError) as error:
+        _log_game_processing_failure(schedule_game, error, sample)
         return None
 
 
-def _is_final_game(schedule_game: ScheduleGame) -> bool:
+def _duplicate_game_pks(games: list[SilverGame]) -> list[int]:
+    game_pk_counts = Counter(game.game_pk for game in games)
+    return sorted(game_pk for game_pk, count in game_pk_counts.items() if count > 1)
+
+
+def _percentage_exceeds_threshold(
+    count: int,
+    total: int,
+    percent: int,
+    *,
+    inclusive: bool,
+) -> bool:
+    actual_scaled = count * 100
+    threshold_scaled = total * percent
     return (
-        schedule_game.status.abstractGameState == "Final"
-        or schedule_game.status.detailedState == "Final"
+        actual_scaled >= threshold_scaled
+        if inclusive
+        else actual_scaled > threshold_scaled
+    )
+
+
+def _validate_master_schedule_quality(
+    total_schedule_games: int,
+    silver_games: list[SilverGame],
+    failed_game_pks: list[int],
+) -> None:
+    duplicate_game_pks = _duplicate_game_pks(silver_games)
+    if duplicate_game_pks:
+        raise RuntimeError(
+            "Silver master schedule contains duplicate gamePk values: "
+            f"{duplicate_game_pks}"
+        )
+
+    if total_schedule_games:
+        failed_games = len(failed_game_pks)
+        if _percentage_exceeds_threshold(
+            failed_games,
+            total_schedule_games,
+            _PROCESSING_FAILURE_THRESHOLD_PERCENT,
+            inclusive=True,
+        ):
+            raise RuntimeError(
+                "Silver processing failure rate exceeded threshold: "
+                f"{failed_games}/{total_schedule_games}"
+            )
+
+        accounted_games = len(silver_games) + len(failed_game_pks)
+        if _percentage_exceeds_threshold(
+            abs(accounted_games - total_schedule_games),
+            total_schedule_games,
+            _QUALITY_TOLERANCE_PERCENT,
+            inclusive=False,
+        ):
+            raise RuntimeError(
+                "Silver game count deviates from Bronze schedule count beyond "
+                f"{_QUALITY_TOLERANCE_PERCENT}%: accounted={accounted_games}, "
+                f"bronze={total_schedule_games}"
+            )
+
+
+def _send_to_dlq(
+    event: dict[str, Any],
+    error: Exception,
+    *,
+    sqs_client: Any | None = None,
+    queue_url: str | None = None,
+) -> None:
+    queue_url = queue_url or os.environ.get(_DLQ_URL_ENV_VAR)
+    if not queue_url:
+        logger.warning(
+            "Skipping DLQ publish because %s is not configured",
+            _DLQ_URL_ENV_VAR,
+        )
+        return
+
+    client = sqs_client or create_sqs_client()
+    message = {
+        "errorMessage": str(error),
+        "errorType": type(error).__name__,
+        "event": event,
+        "failedAt": current_utc().isoformat().replace("+00:00", "Z"),
+    }
+    client.send_message(
+        QueueUrl=queue_url,
+        MessageBody=json.dumps(message, default=str, sort_keys=True),
+    )
+    _log_structured(
+        logging.ERROR,
+        "silver_lambda_failed",
+        dlq_message_published=True,
+        error_message=str(error),
+        error_type=type(error).__name__,
+        queue_url=queue_url,
     )
 
 
@@ -432,33 +569,65 @@ def build_master_schedule(
         ScheduleResponse,
     )
     silver_games: list[SilverGame] = []
+    failed_game_pks: list[int] = []
+    total_schedule_games = sum(
+        len(schedule_date.games) for schedule_date in schedule.dates
+    )
 
     for schedule_date in schedule.dates:
         for schedule_game in schedule_date.games:
-            if not _is_final_game(schedule_game):
-                continue
-
             game_pk = schedule_game.gamePk
-            boxscore = _read_optional_model_from_s3(
-                s3_client,
-                bucket,
-                CatchPaths.bronze_boxscore_key(game_pk),
-                BoxscoreResponse,
-            )
-            content = _read_optional_model_from_s3(
-                s3_client,
-                bucket,
-                CatchPaths.bronze_content_key(game_pk),
-                ContentResponse,
-            )
-            silver_game = build_silver_game(schedule_game, boxscore, content)
+            try:
+                boxscore = _read_optional_model_from_s3(
+                    s3_client,
+                    bucket,
+                    CatchPaths.bronze_boxscore_key(game_pk),
+                    BoxscoreResponse,
+                )
+                content = _read_optional_model_from_s3(
+                    s3_client,
+                    bucket,
+                    CatchPaths.bronze_content_key(game_pk),
+                    ContentResponse,
+                )
+                silver_game = build_silver_game(schedule_game, boxscore, content)
+            except Exception as error:
+                _log_game_processing_failure(
+                    schedule_game,
+                    error,
+                    schedule_game.model_dump(mode="json", by_alias=True),
+                )
+                failed_game_pks.append(game_pk)
+                continue
             if silver_game is not None:
                 silver_games.append(silver_game)
+            else:
+                failed_game_pks.append(game_pk)
+
+    _validate_master_schedule_quality(
+        total_schedule_games=total_schedule_games,
+        silver_games=silver_games,
+        failed_game_pks=failed_game_pks,
+    )
+    _log_structured(
+        logging.WARNING if failed_game_pks else logging.INFO,
+        "silver_processing_summary",
+        bronze_schedule_game_count=total_schedule_games,
+        games_written=len(silver_games),
+        processing_errors_count=len(failed_game_pks),
+        processing_failure_rate=(
+            len(failed_game_pks) / total_schedule_games if total_schedule_games else 0
+        ),
+    )
 
     return SilverMasterSchedule(
         year=year,
         last_updated=execution_time or current_utc(),
         games=silver_games,
+        processing_errors=SilverProcessingErrors(
+            count=len(failed_game_pks),
+            gamePks=failed_game_pks,
+        ),
     )
 
 
@@ -482,19 +651,27 @@ def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
     """Handle S3 notifications by rebuilding the Silver master schedule."""
     del context
 
-    year = extract_year_from_s3_event(event)
-    bucket = os.environ.get("S3_BUCKET_NAME") or _bucket_name_from_event(event)
-    s3_client = create_s3_client()
+    try:
+        year = extract_year_from_s3_event(event)
+        bucket = os.environ.get("S3_BUCKET_NAME") or _bucket_name_from_event(event)
+        s3_client = create_s3_client()
 
-    master_schedule = build_master_schedule(s3_client, bucket, year, current_utc())
-    output_key = write_master_schedule_to_s3(s3_client, bucket, master_schedule)
+        master_schedule = build_master_schedule(s3_client, bucket, year, current_utc())
+        output_key = write_master_schedule_to_s3(s3_client, bucket, master_schedule)
 
-    return {
-        "bucket": bucket,
-        "games_written": len(master_schedule.games),
-        "output_key": output_key,
-        "year": year,
-    }
+        return {
+            "bucket": bucket,
+            "games_written": len(master_schedule.games),
+            "output_key": output_key,
+            "processing_errors_count": master_schedule.processing_errors.count,
+            "year": year,
+        }
+    except Exception as error:
+        try:
+            _send_to_dlq(event, error)
+        except Exception:
+            logger.exception("Failed to publish Silver Lambda failure to DLQ")
+        raise
 
 
 @click.group()
@@ -525,6 +702,7 @@ def process(year: int, bucket: str | None):
                 "bucket": bucket,
                 "games_written": len(master_schedule.games),
                 "output_key": output_key,
+                "processing_errors_count": master_schedule.processing_errors.count,
                 "year": year,
             },
         ),

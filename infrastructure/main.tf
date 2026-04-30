@@ -148,6 +148,17 @@ resource "aws_ecr_lifecycle_policy" "app" {
 # -----------------------------------------------------------------------------
 # IAM Role — Lambda execution role
 # -----------------------------------------------------------------------------
+resource "aws_sqs_queue" "silver_processing_dlq" {
+  name                      = "${var.project_name}-silver-dlq-${var.environment}"
+  message_retention_seconds = 1209600
+
+  tags = {
+    Project     = var.project_name
+    Environment = var.environment
+    ManagedBy   = "terraform"
+  }
+}
+
 resource "aws_iam_role" "lambda_execution" {
   name = "${var.project_name}-lambda-${var.environment}"
 
@@ -194,6 +205,15 @@ resource "aws_iam_role_policy" "lambda_s3_access" {
           aws_s3_bucket.data.arn,
           "${aws_s3_bucket.data.arn}/*"
         ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "sqs:SendMessage"
+        ]
+        Resource = [
+          aws_sqs_queue.silver_processing_dlq.arn
+        ]
       }
     ]
   })
@@ -215,6 +235,7 @@ resource "aws_lambda_function" "app" {
       ENVIRONMENT    = var.environment
       S3_BUCKET_NAME = aws_s3_bucket.data.id
       LOG_FORMAT     = "json"
+      SILVER_DLQ_URL = aws_sqs_queue.silver_processing_dlq.url
     }
   }
 
