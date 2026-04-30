@@ -53,7 +53,7 @@ _MLB_TEAM_CONTEXT: dict[int, TeamContext] = {
     119: TeamContext("Los Angeles Dodgers", "LAD", "National League", "NL West"),
     120: TeamContext("Washington Nationals", "WSH", "National League", "NL East"),
     121: TeamContext("New York Mets", "NYM", "National League", "NL East"),
-    133: TeamContext("Athletics", "OAK", "American League", "AL West"),
+    133: TeamContext("Oakland Athletics", "OAK", "American League", "AL West"),
     134: TeamContext("Pittsburgh Pirates", "PIT", "National League", "NL Central"),
     135: TeamContext("San Diego Padres", "SD", "National League", "NL West"),
     136: TeamContext("Seattle Mariners", "SEA", "American League", "AL West"),
