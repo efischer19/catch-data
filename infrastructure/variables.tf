@@ -59,3 +59,15 @@ variable "catch_analytics_image_tag" {
     error_message = "catch_analytics_image_tag must be a non-empty pinned tag and may not be 'latest'."
   }
 }
+
+variable "cloudfront_custom_domain" {
+  description = "Optional custom domain name for the CloudFront distribution (e.g., cdn.example.com). Requires acm_certificate_arn."
+  type        = string
+  default     = ""
+}
+
+variable "acm_certificate_arn" {
+  description = "Optional ACM certificate ARN for the custom CloudFront domain. Must be issued in us-east-1. Required when cloudfront_custom_domain is set."
+  type        = string
+  default     = ""
+}

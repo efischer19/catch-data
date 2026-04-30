@@ -50,3 +50,13 @@ output "catch_analytics_lambda_execution_role_arn" {
   description = "ARN of the catch-analytics Lambda execution IAM role"
   value       = module.catch_analytics.lambda_execution_role_arn
 }
+
+output "cloudfront_distribution_domain" {
+  description = "Domain name of the CloudFront distribution serving the Gold layer"
+  value       = aws_cloudfront_distribution.gold.domain_name
+}
+
+output "cloudfront_distribution_id" {
+  description = "ID of the CloudFront distribution serving the Gold layer (used for cache invalidation)"
+  value       = aws_cloudfront_distribution.gold.id
+}
