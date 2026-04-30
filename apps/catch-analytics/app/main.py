@@ -241,11 +241,10 @@ def _window_days_from_env(env_var: str, default: int) -> int:
     if raw_value == "":
         raise ValueError(f"{env_var} must not be empty when configured")
     try:
-        return _validate_non_negative_days(env_var, int(raw_value))
+        parsed_value = int(raw_value)
     except ValueError as error:
-        if str(error).endswith("must be non-negative"):
-            raise
         raise ValueError(f"{env_var} must be an integer") from error
+    return _validate_non_negative_days(env_var, parsed_value)
 
 
 def _upcoming_window_bounds(

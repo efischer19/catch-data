@@ -464,6 +464,31 @@ class TestGoldUpcomingGames:
         assert dumped["dates"][0]["date"] == "2026-07-04"
         assert dumped["dates"][0]["games"][0]["game_pk"] == 745678
 
+    def test_explicit_date_groups_must_match_games(self):
+        from pydantic import ValidationError
+
+        game = GoldGameSummary(
+            game_pk=745678,
+            date=datetime(2026, 7, 4, 17, 5, tzinfo=UTC),
+            status="Final",
+            game_number=1,
+            venue_name="Yankee Stadium",
+            home_team=_HOME_TEAM,
+            away_team=_AWAY_TEAM,
+            score=GoldScore(away=3, home=5),
+            score_display="3-5",
+        )
+
+        with pytest.raises(
+            ValidationError,
+            match="dates must match the grouped games list",
+        ):
+            GoldUpcomingGames(
+                last_updated=datetime(2026, 7, 5, 12, 0, tzinfo=UTC),
+                games=[game],
+                dates=[GoldGameDateGroup(date=datetime(2026, 7, 5, tzinfo=UTC).date())],
+            )
+
     def test_json_schema_is_serialisable(self):
         schema = GoldUpcomingGames.model_json_schema()
         json.dumps(schema)  # must not raise

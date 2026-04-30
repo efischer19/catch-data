@@ -246,6 +246,30 @@ class GoldGameDateGroup(BaseModel):
     )
 
 
+def _group_games_by_date(games: list[GoldGameSummary]) -> list[GoldGameDateGroup]:
+    grouped_games: list[GoldGameDateGroup] = []
+    current_date: calendar_date | None = None
+    current_games: list[GoldGameSummary] = []
+
+    for game in games:
+        game_date = game.date.date()
+        if current_date != game_date:
+            if current_date is not None:
+                grouped_games.append(
+                    GoldGameDateGroup(date=current_date, games=current_games)
+                )
+            current_date = game_date
+            current_games = [game]
+            continue
+
+        current_games.append(game)
+
+    if current_date is not None:
+        grouped_games.append(GoldGameDateGroup(date=current_date, games=current_games))
+
+    return grouped_games
+
+
 class GoldUpcomingGames(_GoldBaseModel):
     """Consolidated upcoming and recently completed games across all teams.
 
@@ -276,30 +300,12 @@ class GoldUpcomingGames(_GoldBaseModel):
 
     @model_validator(mode="after")
     def _populate_dates_from_games(self) -> GoldUpcomingGames:
-        if self.dates or not self.games:
+        grouped_games = _group_games_by_date(self.games)
+        if not self.dates:
+            self.dates = grouped_games
             return self
 
-        grouped_games: list[GoldGameDateGroup] = []
-        current_date: calendar_date | None = None
-        current_games: list[GoldGameSummary] = []
+        if self.dates != grouped_games:
+            raise ValueError("dates must match the grouped games list")
 
-        for game in self.games:
-            game_date = game.date.date()
-            if current_date != game_date:
-                if current_date is not None:
-                    grouped_games.append(
-                        GoldGameDateGroup(date=current_date, games=current_games)
-                    )
-                current_date = game_date
-                current_games = [game]
-                continue
-
-            current_games.append(game)
-
-        if current_date is not None:
-            grouped_games.append(
-                GoldGameDateGroup(date=current_date, games=current_games)
-            )
-
-        self.dates = grouped_games
         return self
