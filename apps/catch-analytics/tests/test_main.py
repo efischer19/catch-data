@@ -460,6 +460,7 @@ def test_generate_team_schedule_files_invalidates_cloudfront_when_configured(
 
 
 def test_terraform_configures_silver_to_gold_trigger():
+    """Keep trigger verification in the app test suite until infra gets native tests."""
     terraform = _INFRASTRUCTURE_MAIN_TF.read_text()
 
     assert 'resource "aws_lambda_permission" "allow_data_bucket_invoke"' in terraform
