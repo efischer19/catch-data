@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       # TODO: Uncomment and configure AWS credentials for S3 access
       # - name: Configure AWS credentials

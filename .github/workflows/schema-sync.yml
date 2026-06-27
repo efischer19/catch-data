@@ -120,7 +120,7 @@ jobs:
 
       - name: Checkout catch-data at schema source commit
         if: steps.auth.outputs.ready == 'true' && steps.target.outputs.exists == 'true'
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           ref: ${{ steps.context.outputs.source_sha }}
           fetch-depth: 1
@@ -136,7 +136,7 @@ jobs:
 
       - name: Checkout catch-app
         if: steps.auth.outputs.ready == 'true' && steps.target.outputs.exists == 'true'
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: ${{ steps.context.outputs.target_repo }}
           token: ${{ env.SYNC_TOKEN }}
