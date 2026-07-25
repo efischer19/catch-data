@@ -12,7 +12,7 @@ pydantic = "^2.11"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^9.0"
-ruff = "^0.15"
+ruff = ">=0.15,<0.17"
 jsonschema = "^4.26.0"
 
 [build-system]
